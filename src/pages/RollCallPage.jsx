@@ -6,19 +6,12 @@ import FloatingLabelComponent from '../components/FloatingLabelComponent';
 import styled from 'styled-components';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
 
-const AttendancePage = () => {
+const RollCallPage = () => {
     const user = useSelector((state) => state.user);
+    const { classid, attendancetype } = useParams();
 
-    const [attendanceList, setAttendanceList] = useState({
-        date: '',
-        courseId: '',
-        students: [{
-            studentId: '',
-            studentName: '',
-            time: ''
-        }]
-    });
     const [attendanceClass, setAttendanceClass] = useState('');
     const [attendanceStudents, setAttendanceStudents] = useState([{
         student: '',
@@ -36,6 +29,19 @@ const AttendancePage = () => {
     });
     const { isLoading: isLoadingAllClassesByTeacher, data: allClassesByTeacher } = queryAllClassesByTeacher;
 
+    // set attendance
+    const setAttendance = async () => {
+        setAttendanceClass(classid);
+        const res = await ServerService.setAttendance(classid, attendancetype, user?.id);
+        return res;
+    }
+    const queryAttendance = useQuery({
+        queryKey: ['attendance-info'],
+        queryFn: setAttendance
+    });
+    const { isLoading: isLoadingAttendanceInfo, data: attendanceInfo } = queryAttendance;
+
+    
     const handleOnChangeClassAttendance = async (classAttendance) => {
         setAttendanceClass(classAttendance);
         const res = await ServerService.setAttendance(classAttendance);
@@ -147,7 +153,7 @@ const AttendancePage = () => {
     )
 };
 
-export default AttendancePage;
+export default RollCallPage;
 
 const AddNewForm = styled(Form)`
     .input-select-class {

@@ -2,6 +2,9 @@ import HomePage from "../pages/HomePage";
 import SignInPage from "../pages/SignInPage";
 import AttendancePage from "../pages/AttendancePage";
 import MyClassesPage from "../pages/MyClassesPage";
+import AttendanceClassesPage from "../pages/AttendanceClassesPage";
+import RollCallPage from "../pages/RollCallPage";
+
 
 export const routes = [
     {
@@ -23,6 +26,22 @@ export const routes = [
     {
         path: '/attendance',
         page: AttendancePage,
+        isShowHeader: true,
+        isShowFooter: true,
+        isPrivate: false,
+        exact: false,
+    },
+    {
+        path: '/attendance-classes',
+        page: AttendanceClassesPage,
+        isShowHeader: true,
+        isShowFooter: true,
+        isPrivate: false,
+        exact: false,
+    },
+    {
+        path: '/roll-call/:classid/:attendancetype',
+        page: RollCallPage,
         isShowHeader: true,
         isShowFooter: true,
         isPrivate: false,

@@ -24,6 +24,14 @@ const HeaderComponent = () => {
       {
          key: '1',
          label: (
+            <a target="_blank" rel="noopener noreferrer" onClick={() => navigateAttendanceClassesPage()}>
+               Attendance Classes
+            </a>
+         ),
+      },
+      {
+         key: '2',
+         label: (
             <a target="_blank" rel="noopener noreferrer" onClick={() => navigateAttendancePage()}>
                Roll Call
             </a>
@@ -60,6 +68,9 @@ const HeaderComponent = () => {
    }
    const navigateAttendancePage = () => {
       navigate('/attendance');
+   }
+   const navigateAttendanceClassesPage = () => {
+      navigate('/attendance-classes');
    }
    const navigateMyClassesPage = () => {
       navigate('/myclasses');

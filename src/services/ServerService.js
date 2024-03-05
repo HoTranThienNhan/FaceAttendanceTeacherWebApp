@@ -20,8 +20,13 @@ export const getAllClassesByTeacher = async (teacherid) => {
     return res.data;
 }
 
-export const setStudentAttendance = async (classid) => {
-    const res = await axios.get(`${process.env.REACT_APP_API_URL}/set_student_attendance?classid=${classid}`);
+export const setAttendance = async (classid, attendancetype, teacherid) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/set_attendance?classid=${classid}&attendancetype=${attendancetype}&teacherid=${teacherid}`);
+    return res.data;
+}
+
+export const getAllStudentsByClass = async (classid) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_all_students_by_class?classid=${classid}`);
     return res.data;
 }
 
