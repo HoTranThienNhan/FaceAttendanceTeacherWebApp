@@ -20,6 +20,11 @@ export const getAllClassesByTeacher = async (teacherid) => {
     return res.data;
 }
 
+export const getClassByTeacherAndClassId = async (teacherid, classid) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_class_by_teacher_and_class_id?teacherid=${teacherid}&classid=${classid}`);
+    return res.data;
+}
+
 export const setAttendance = async (classid, attendancetype, teacherid) => {
     const res = await axios.get(`${process.env.REACT_APP_API_URL}/set_attendance?classid=${classid}&attendancetype=${attendancetype}&teacherid=${teacherid}`);
     return res.data;
@@ -30,5 +35,14 @@ export const getAllStudentsByClass = async (classid) => {
     return res.data;
 }
 
+export const getInAttendance = async (classid) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_in_attendance?classid=${classid}`);
+    return res.data;
+}
+
+export const getOutAttendance = async (classid) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_out_attendance?classid=${classid}`);
+    return res.data;
+}
 
 

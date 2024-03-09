@@ -14,8 +14,10 @@ const AttendanceClassesPage = () => {
         classid: '',
         courseid: '',
         coursename: '',
-        timein: '',
-        timeout: '',
+        standardTimein: '',
+        standardTimeout: '',
+        isRollCallIn: false,
+        isRollCallOut: false,
         students: [],
     });
     const [today, setToday] = useState(getDayOfToday() + ' - ' + new Date().toLocaleDateString() + '');
@@ -26,17 +28,17 @@ const AttendanceClassesPage = () => {
         return res;
     }
     const queryAllClassesByTeacher = useQuery({
-        queryKey: ['classes'],
+        queryKey: ['classes-by-teacher'],
         queryFn: getAllClassesByTeacher
     });
     const { isLoading: isLoadingAllClassesByTeacher, data: allClassesByTeacher } = queryAllClassesByTeacher;
 
-    // get all students by class
+    // get all students by class and set abled/disabled in-out attendance button 
     const getAllStudentsByClass = async (classid) => {
-        const res = await ServerService.getAllStudentsByClass(classid);
+        const res_all_students = await ServerService.getAllStudentsByClass(classid);
         // set students state
         let studentList = [];
-        res?.forEach(student => {
+        res_all_students?.forEach(student => {
             studentList.push(student.studentid)
         });
         setClassDetails(prevState => {
@@ -45,7 +47,42 @@ const AttendanceClassesPage = () => {
                 students: studentList
             }
         });
-        return res;
+        // set abled/disabled in-out attendance button  
+        const res_in_attendance = await ServerService.getInAttendance(classid);
+        // if in attendance has not taken yet
+        if (res_in_attendance?.length > 0) {
+            setClassDetails(prevState => {
+                return {
+                    ...prevState,
+                    isRollCallIn: true,
+                }
+            });
+        } else {
+            setClassDetails(prevState => {
+                return {
+                    ...prevState,
+                    isRollCallIn: false,
+                }
+            });
+        }
+        const res_out_attendance = await ServerService.getOutAttendance(classid);
+        // if out attendance has not taken yet
+        if (res_out_attendance?.length > 0) {
+            setClassDetails(prevState => {
+                return {
+                    ...prevState,
+                    isRollCallOut: true,
+                }
+            });
+        } else {
+            setClassDetails(prevState => {
+                return {
+                    ...prevState,
+                    isRollCallOut: false,
+                }
+            });
+        }
+        return res_all_students;
     }
 
     // attendance classes columns
@@ -116,8 +153,8 @@ const AttendanceClassesPage = () => {
                                                 classid: record?.id,
                                                 courseid: record?.courseid,
                                                 coursename: record?.name,
-                                                timein: record?.timein,
-                                                timeout: record?.timeout,
+                                                standardTimein: record?.timein,
+                                                standardTimeout: record?.timeout,
                                             }
                                         })
                                         getAllStudentsByClass(record?.id);
@@ -139,7 +176,7 @@ const AttendanceClassesPage = () => {
                                 </Col>
                                 <Col>
                                     <span style={{ fontSize: '16px' }}>
-                                        {classDetails?.timein?.length > 0 ? classDetails?.timein : '00:00:00'} - {classDetails?.timeout?.length > 0 ? classDetails?.timeout : '00:00:00'}
+                                        {classDetails?.standardTimein?.length > 0 ? classDetails?.standardTimein : '00:00:00'} - {classDetails?.standardTimeout?.length > 0 ? classDetails?.standardTimeout : '00:00:00'}
                                     </span>
                                 </Col>
                             </Row>
@@ -170,7 +207,7 @@ const AttendanceClassesPage = () => {
                                     style={{ borderRadius: '15px', backgroundColor: '#a0a0e1', marginRight: '15px' }}
                                     type='primary'
                                     onClick={() => rollCallIn(classDetails?.classid, 'in')}
-                                    disabled={classDetails?.classid?.length === 0}
+                                    disabled={classDetails?.classid?.length === 0 || classDetails?.isRollCallIn === true}
                                 >
                                     ROLL CALL - IN
                                 </Button>
@@ -178,7 +215,7 @@ const AttendanceClassesPage = () => {
                                     style={{ borderRadius: '15px', backgroundColor: '#a0a0e1' }}
                                     type='primary'
                                     onClick={() => rollCallOut(classDetails?.classid, 'out')}
-                                    disabled={classDetails?.classid?.length === 0}
+                                    disabled={classDetails?.classid?.length === 0 || classDetails?.isRollCallOut === true}
                                 >
                                     ROLL CALL - OUT
                                 </Button>

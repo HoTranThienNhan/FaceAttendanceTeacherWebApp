@@ -1,6 +1,5 @@
 import HomePage from "../pages/HomePage";
 import SignInPage from "../pages/SignInPage";
-import AttendancePage from "../pages/AttendancePage";
 import MyClassesPage from "../pages/MyClassesPage";
 import AttendanceClassesPage from "../pages/AttendanceClassesPage";
 import RollCallPage from "../pages/RollCallPage";
@@ -18,14 +17,6 @@ export const routes = [
     {
         path: '/signin',
         page: SignInPage,
-        isShowHeader: true,
-        isShowFooter: true,
-        isPrivate: false,
-        exact: false,
-    },
-    {
-        path: '/attendance',
-        page: AttendancePage,
         isShowHeader: true,
         isShowFooter: true,
         isPrivate: false,

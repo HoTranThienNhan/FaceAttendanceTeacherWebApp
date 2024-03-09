@@ -1,16 +1,20 @@
-import { Button, Card, Col, Form, Image, Popconfirm, Row, Select } from 'antd';
+import { Avatar, Breadcrumb, Button, Card, Col, Form, Image, Input, Popconfirm, Row, Select } from 'antd';
 import React, { useEffect, useState } from 'react';
 import * as ServerService from '../services/ServerService';
 import ImageNotFound from '../assets/images/404-image-not-found.png';
-import FloatingLabelComponent from '../components/FloatingLabelComponent';
 import styled from 'styled-components';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { UserOutlined } from '@ant-design/icons';
+import { getDayOfToday } from '../utils';
+import _ from "lodash";
+import * as MessagePopup from '../components/MessagePopupComponent';
 
 const RollCallPage = () => {
     const user = useSelector((state) => state.user);
     const { classid, attendancetype } = useParams();
+    const [today, setToday] = useState(getDayOfToday() + ' - ' + new Date().toLocaleDateString() + '');
 
     const [attendanceClass, setAttendanceClass] = useState('');
     const [attendanceStudents, setAttendanceStudents] = useState([{
@@ -18,16 +22,16 @@ const RollCallPage = () => {
         time: ''
     }]);
 
-    // get all classes by teacher
-    const getAllClassesByTeacher = async () => {
-        const res = await ServerService.getAllClassesByTeacher(user?.id);
+    // get class by teacher and class id
+    const getClassByTeacherAndClassId = async () => {
+        const res = await ServerService.getClassByTeacherAndClassId(user?.id, classid);
         return res;
     }
-    const queryAllClassesByTeacher = useQuery({
-        queryKey: ['classes'],
-        queryFn: getAllClassesByTeacher
+    const queryClassByTeacherAndClassId = useQuery({
+        queryKey: ['class-by-teacher-and-class-id'],
+        queryFn: getClassByTeacherAndClassId
     });
-    const { isLoading: isLoadingAllClassesByTeacher, data: allClassesByTeacher } = queryAllClassesByTeacher;
+    const { isLoading: isLoadingClassByTeacherAndClassId, data: classByTeacherAndClassId } = queryClassByTeacherAndClassId;
 
     // set attendance
     const setAttendance = async () => {
@@ -41,7 +45,7 @@ const RollCallPage = () => {
     });
     const { isLoading: isLoadingAttendanceInfo, data: attendanceInfo } = queryAttendance;
 
-    
+
     const handleOnChangeClassAttendance = async (classAttendance) => {
         setAttendanceClass(classAttendance);
         const res = await ServerService.setAttendance(classAttendance);
@@ -55,10 +59,14 @@ const RollCallPage = () => {
     const resetImage = () => {
         setReloadImage(Math.random());
     }
+    const [isActiveStartButton, setIsActiveStartButton] = useState(true);
+    const [isActiveStopButton, setIsActiveStopButton] = useState(true);
 
     const startRecoginition = async () => {
         // await ServerService.startRecognition();
         setScanURL(`${process.env.REACT_APP_API_URL}/face_rec`);
+        setIsActiveStartButton(false);
+        MessagePopup.warning("Please wait a few seconds for preparing camera");
     }
 
     const stopVideoStream = async () => {
@@ -66,6 +74,81 @@ const RollCallPage = () => {
         setAttendanceStudents(data);
         setScanURL(ImageNotFound);
         resetImage();
+        setIsActiveStopButton(false);
+        MessagePopup.success("Take attendance successfully");
+    }
+
+
+    // search student
+    const [searchStudentValue, setSearchStudentValue] = useState('');
+    const [arr, setArr] = useState([
+        {
+            student: 'B2005767',
+            time: '10:00:00'
+        },
+        {
+            student: 'B2005768',
+            time: '10:00:00'
+        },
+        {
+            student: 'B2005769',
+            time: '10:00:00'
+        },
+        {
+            student: 'B2005770',
+            time: '10:00:00'
+        },
+        {
+            student: 'B2005771',
+            time: '10:00:00'
+        },
+        {
+            student: 'B2005772',
+            time: '10:00:00'
+        },
+        {
+            student: 'B2005773',
+            time: '10:00:00'
+        },
+        {
+            student: 'B2005774',
+            time: '10:00:00'
+        },
+        {
+            student: 'B2005775',
+            time: '10:00:00'
+        },
+        {
+            student: 'B2005776',
+            time: '10:00:00'
+        },
+        {
+            student: 'B2005777',
+            time: '10:00:00'
+        },
+    ]);
+    // !!!! change arr to attendanceStudents 
+    const [searchedStudents, setSearchedStudents] = useState(arr);
+    const handleOnChangeSearchStudentValue = (e) => {
+        setSearchStudentValue(e.target.value);
+        const searchedStudentId = e.target.value.toLowerCase();
+        let tempSearchedStudents = [];
+        arr?.map((student) => {
+            const studentId = student?.student.toLowerCase();
+            if (studentId.includes(searchedStudentId)) {
+                tempSearchedStudents.push(student);
+            }
+        });
+        setSearchedStudents(tempSearchedStudents);
+    }
+
+    // navigate
+    const navigate = useNavigate();
+    const navigateToHomePage = () => {
+        navigate('/');
+    }
+    const navigateToAttendanceClasses = () => {
+        navigate('/attendance-classes');
     }
 
 
@@ -73,60 +156,60 @@ const RollCallPage = () => {
     return (
         <Card style={{ margin: '30px 100px', borderRadius: '15px', padding: '0px 30px' }}>
             <Row>
+                <Col>
+                    <Breadcrumb
+                        items={[
+                            {
+                                title: <span style={{ cursor: 'pointer' }} onClick={navigateToHomePage}>Home</span>,
+                            },
+                            {
+                                title: <span style={{ cursor: 'pointer' }} onClick={navigateToAttendanceClasses}>Attendance Classes</span>,
+                            },
+                            {
+                                title: 'Roll Call',
+                            },
+                        ]}
+                    />
+                </Col>
+            </Row>
+            <Row justify="space-between">
+                <Col span={24} style={{ fontSize: '30px', fontWeight: '600', color: '#4d4d7f' }}>
+                    ROLL CALL - {attendancetype === 'in' ? 'IN' : 'OUT'} ({today})
+                </Col>
+            </Row>
+            <Row style={{ marginTop: '20px' }}>
                 <Col span={17}>
-                    <AddNewForm
-                        name="basic"
-                        labelCol={{ span: 8 }}
-                        wrapperCol={{ span: 24 }}
-                        initialValues={{ remember: true }}
-                        autoComplete="off"
-                    >
-                        <Form.Item
-                            label=""
-                            validateStatus={"validating"}
-                            help=""
-                            style={{ marginBottom: '0px' }}
-                            className='form-item-input'
-                        >
-                            <FloatingLabelComponent
-                                label="Class"
-                                value="Class"
-                                styleBefore={{ left: '37px', top: '31px' }}
-                                styleAfter={{ left: '37px', top: '23px' }}
+                    <Row justify="space-between">
+                        <Col style={{ fontSize: '20px' }}>
+                            Class:&nbsp;<b>{classid}</b>
+                        </Col>
+                        <Col style={{ fontSize: '20px' }}>
+                            Course:&nbsp;<b>{classByTeacherAndClassId?.courseid} - {classByTeacherAndClassId?.name}</b>
+                        </Col>
+                        <Col style={{ fontSize: '20px' }}>
+                            Time:&nbsp;<b>{attendancetype === 'in' ? classByTeacherAndClassId?.timein : classByTeacherAndClassId?.timeout}</b>
+                        </Col>
+                    </Row>
+                    <Row style={{ marginTop: '20px' }} justify="center">
+                        <Col>
+                            <Button
+                                style={{ borderRadius: '15px', backgroundColor: '#a0a0e1' }}
+                                type='primary'
+                                onClick={() => startRecoginition()}
+                                disabled={!isActiveStartButton}
                             >
-                                <Select
-                                    className='input-select-class'
-                                    defaultValue="Select Class"
-                                    onChange={handleOnChangeClassAttendance}
-                                    value={attendanceClass?.length > 0 ? attendanceClass : "Select Class"}
-                                >
-                                    {allClassesByTeacher?.map((classItem, index) => {
-                                        return (
-                                            <Select.Option value={classItem?.id}>Class: <b>{classItem?.id}</b> - Course: <b>{classItem?.name}</b></Select.Option>
-                                        );
-                                    })}
-                                </Select>
-                            </FloatingLabelComponent>
-                        </Form.Item>
-                    </AddNewForm>
-
-                    <Button
-                        style={{ borderRadius: '15px', backgroundColor: '#a0a0e1' }}
-                        type='primary'
-                        onClick={() => startRecoginition()}
-                        disabled={attendanceClass?.length === 0}
-                    >
-                        START RECOGNITION
-                    </Button>
-                    <Button
-                        style={{ borderRadius: '15px', backgroundColor: '#a0a0e1', marginLeft: '20px' }}
-                        type='primary'
-                        onClick={() => stopVideoStream()}
-                        disabled={attendanceClass?.length === 0}
-                    >
-                        STOP
-                    </Button>
-                    {/* <LoadingComponent isLoading={isLoading}> */}
+                                START RECOGNITION
+                            </Button>
+                            <Button
+                                style={{ borderRadius: '15px', backgroundColor: '#a0a0e1', marginLeft: '20px' }}
+                                type='primary'
+                                onClick={() => stopVideoStream()}
+                                disabled={!isActiveStopButton}
+                            >
+                                STOP RECOGNITION
+                            </Button>
+                        </Col>
+                    </Row>
                     <Image
                         src={scanURL}
                         style={{ width: "856px", height: "485px", borderRadius: "20px", marginTop: '20px' }}
@@ -134,19 +217,67 @@ const RollCallPage = () => {
                         preview={false}
                         key={reloadImage}
                     />
-                    {/* </LoadingComponent> */}
                 </Col>
                 <Col span={6} offset={1} style={{ marginTop: '40px' }}>
                     <div style={{ fontSize: '24px', fontWeight: '600', color: '#4d4d7f', marginBottom: '25px' }}>STUDENT INFORMATION</div>
+                    <Row>
+                        <Col span={24}>
+                            <Input
+                                placeholder="Search Student ID"
+                                style={{
+                                    borderRadius: '15px',
+                                    height: '40px',
+                                    marginBottom: '25px'
+                                }}
+                                value={searchStudentValue}
+                                onChange={handleOnChangeSearchStudentValue}
+                            />
+                        </Col>
+                    </Row>
 
-                    {attendanceStudents && attendanceStudents?.map((studentAttendance) => {
-                        return (
-                            <Row justify="space-evenly" style={{ marginBottom: '15px' }}>
-                                <Col style={{ fontSize: '18px' }}>{studentAttendance?.student}</Col>
-                                <Col style={{ fontSize: '18px' }}>{studentAttendance?.time}</Col>
-                            </Row>
-                        );
-                    })}
+                    <div style={{ maxHeight: '400px', overflow: 'auto' }}>
+                        {searchedStudents && searchedStudents?.map((studentAttendance) => {
+                            //{attendanceStudents && attendanceStudents?.map((studentAttendance) => {
+                            if (studentAttendance?.student !== '' && studentAttendance?.time !== '') {
+                                return (
+                                    <Row justify="space-evenly" style={{ marginBottom: '20px' }} align="middle">
+                                        <Col>
+                                            <Avatar
+                                                shape="square"
+                                                size={32}
+                                                icon={<UserOutlined />}
+                                                style={{ backgroundColor: '#91caff' }}
+                                            />
+                                        </Col>
+                                        <Col style={{ fontSize: '18px' }}>{studentAttendance?.student}</Col>
+                                        <Col style={{ fontSize: '18px' }}>{studentAttendance?.time}</Col>
+                                    </Row>
+                                );
+                            }
+                        })}
+                    </div>
+
+                    {/* <div style={{ maxHeight: '400px', overflow: 'auto' }}>
+                        {
+                            _.times(20, (i) => {
+                                return (
+                                    <Row justify="space-evenly" style={{ marginBottom: '20px' }} align="middle">
+                                        <Col>
+                                            <Avatar
+                                                shape="square"
+                                                size={32}
+                                                icon={<UserOutlined />}
+                                                style={{ backgroundColor: '#91caff' }}
+                                            />
+                                        </Col>
+                                        <Col style={{ fontSize: '18px' }}>B2005767</Col>
+                                        <Col style={{ fontSize: '18px' }}>Thien Nhan</Col>
+                                    </Row>
+                                );
+                            })
+                        }
+                    </div> */}
+
                 </Col>
             </Row >
         </Card >

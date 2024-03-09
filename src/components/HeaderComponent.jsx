@@ -29,14 +29,6 @@ const HeaderComponent = () => {
             </a>
          ),
       },
-      {
-         key: '2',
-         label: (
-            <a target="_blank" rel="noopener noreferrer" onClick={() => navigateAttendancePage()}>
-               Roll Call
-            </a>
-         ),
-      },
    ];
    const navMyClassesItems = [
       {
@@ -65,9 +57,6 @@ const HeaderComponent = () => {
    }
    const navigateSignInPage = () => {
       navigate('/signin');
-   }
-   const navigateAttendancePage = () => {
-      navigate('/attendance');
    }
    const navigateAttendanceClassesPage = () => {
       navigate('/attendance-classes');
