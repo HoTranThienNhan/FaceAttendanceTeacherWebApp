@@ -3,6 +3,7 @@ import SignInPage from "../pages/SignInPage";
 import MyClassesPage from "../pages/MyClassesPage";
 import AttendanceClassesPage from "../pages/AttendanceClassesPage";
 import RollCallPage from "../pages/RollCallPage";
+import AttendanceManagementPage from "../pages/AttendanceManagementPage";
 
 
 export const routes = [
@@ -33,6 +34,14 @@ export const routes = [
     {
         path: '/roll-call/:classid/:attendancetype',
         page: RollCallPage,
+        isShowHeader: true,
+        isShowFooter: true,
+        isPrivate: false,
+        exact: false,
+    },
+    {
+        path: '/attendance-management',
+        page: AttendanceManagementPage,
         isShowHeader: true,
         isShowFooter: true,
         isPrivate: false,

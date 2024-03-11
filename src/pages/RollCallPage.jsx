@@ -60,12 +60,13 @@ const RollCallPage = () => {
         setReloadImage(Math.random());
     }
     const [isActiveStartButton, setIsActiveStartButton] = useState(true);
-    const [isActiveStopButton, setIsActiveStopButton] = useState(true);
+    const [isActiveStopButton, setIsActiveStopButton] = useState(false);
 
     const startRecoginition = async () => {
         // await ServerService.startRecognition();
         setScanURL(`${process.env.REACT_APP_API_URL}/face_rec`);
         setIsActiveStartButton(false);
+        setIsActiveStopButton(true);
         MessagePopup.warning("Please wait a few seconds for preparing camera");
     }
 

@@ -25,6 +25,11 @@ export const getClassByTeacherAndClassId = async (teacherid, classid) => {
     return res.data;
 }
 
+export const getAllClassesByYearSemesterTeacherId = async (year, semester, teacherid) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_all_classes_by_year_semester_teacher?year=${year}&semester=${semester}&teacherid=${teacherid}`);
+    return res.data;
+}
+
 export const setAttendance = async (classid, attendancetype, teacherid) => {
     const res = await axios.get(`${process.env.REACT_APP_API_URL}/set_attendance?classid=${classid}&attendancetype=${attendancetype}&teacherid=${teacherid}`);
     return res.data;
@@ -45,4 +50,18 @@ export const getOutAttendance = async (classid) => {
     return res.data;
 }
 
+export const getStandardInOutAttendance = async (classid, day) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_standard_in_out_attendance?classid=${classid}&day=${day}`);
+    return res.data;
+}
+
+export const getFullAttendance = async (classid, date, day) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_full_attendance?classid=${classid}&date=${date}&day=${day}`);
+    return res.data;
+}
+
+export const getClassTimeByClassId = async (classid) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_class_time_by_class_id?classid=${classid}`);
+    return res.data;
+}
 

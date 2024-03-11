@@ -29,6 +29,14 @@ const HeaderComponent = () => {
             </a>
          ),
       },
+      {
+         key: '2',
+         label: (
+            <a target="_blank" rel="noopener noreferrer" onClick={() => navigateAttendanceManagementPage()}>
+               Attendance Management
+            </a>
+         ),
+      },
    ];
    const navMyClassesItems = [
       {
@@ -60,6 +68,9 @@ const HeaderComponent = () => {
    }
    const navigateAttendanceClassesPage = () => {
       navigate('/attendance-classes');
+   }
+   const navigateAttendanceManagementPage = () => {
+      navigate('/attendance-management');
    }
    const navigateMyClassesPage = () => {
       navigate('/myclasses');

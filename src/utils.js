@@ -32,3 +32,58 @@ export const getDayOfToday = () => {
     }
     return day;
 }
+
+export const getDayOfSpecificDate = (dateString) => {
+    let day;
+    const date = new Date(dateString).getDay();
+    switch (date) {
+        case 0:
+            day = "Sunday";
+            break;
+        case 1:
+            day = "Monday";
+            break;
+        case 2:
+            day = "Tuesday";
+            break;
+        case 3:
+            day = "Wednesday";
+            break;
+        case 4:
+            day = "Thursday";
+            break;
+        case 5:
+            day = "Friday";
+            break;
+        case 6:
+            day = "Saturday";
+    }
+    return day;
+}
+
+export const getDayNumberOfSpecificDayText = (dayText) => {
+    let dayNumber;
+    switch (dayText) {
+        case "Sunday":
+            dayNumber = 0;
+            break;
+        case "Monday":
+            dayNumber = 1;
+            break;
+        case "Tuesday":
+            dayNumber = 2;
+            break;
+        case "Wednesday":
+            dayNumber = 3;
+            break;
+        case "Thursday":
+            dayNumber = 4;
+            break;
+        case "Friday":
+            dayNumber = 5;
+            break;
+        case "Saturday":
+            dayNumber = 6;
+    }
+    return dayNumber;
+}
