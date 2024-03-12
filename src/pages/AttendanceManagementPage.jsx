@@ -1,5 +1,5 @@
-import { Button, Card, Col, DatePicker, Form, Row, Select, Tag } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { Button, Card, Col, DatePicker, Form, Input, Row, Select, Space, Tag } from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import FloatingLabelComponent from '../components/FloatingLabelComponent';
 import dayjs from 'dayjs';
@@ -8,6 +8,8 @@ import { useSelector } from 'react-redux';
 import * as ServerService from '../services/ServerService';
 import TableComponent from '../components/TableComponent';
 import { getDayOfSpecificDate, getDayOfToday, getDayNumberOfSpecificDayText } from '../utils';
+import { SearchOutlined } from '@ant-design/icons';
+import Highlighter from 'react-highlight-words';
 
 const AttendanceManagementPage = () => {
     const user = useSelector((state) => state.user);
@@ -29,6 +31,7 @@ const AttendanceManagementPage = () => {
         setAttendanceState({
             ...attendanceState,
             year: dateString,
+            class: '',
             date: ''
         });
 
@@ -51,20 +54,22 @@ const AttendanceManagementPage = () => {
         setAllClasses(res);
         setAttendanceState({
             ...attendanceState,
-            class: ''
+            class: '',
+            date: ''
         });
         return res;
     }
     useEffect(() => {
         handleGAllClassesByYearSemesterTeacherId();
-    }, [attendanceState?.semester])
+    }, [attendanceState?.year, attendanceState?.semester])
 
     // handle on change class
     const [availabledDays, setAvailabledDays] = useState([]);     // availabled days are class days
     const handleOnChangeClass = async (classValue) => {
         setAttendanceState({
             ...attendanceState,
-            class: classValue
+            class: classValue,
+            date: ''
         });
         // set availabled days to disable unavailabled days in date picker
         const res = await ServerService.getClassTimeByClassId(classValue);
@@ -90,17 +95,93 @@ const AttendanceManagementPage = () => {
 
 
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< TABLE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    // search
+    const [searchText, setSearchText] = useState('');
+    const [searchedColumn, setSearchedColumn] = useState('');
+    const searchInput = useRef(null);
+    const handleSearchTable = (selectedKeys, confirm, dataIndex) => {
+        confirm();
+        setSearchText(selectedKeys[0]);
+        setSearchedColumn(dataIndex);
+    };
+    const handleResetSearch = (clearFilters) => {
+        clearFilters();
+        setSearchText('');
+    };
+    const getColumnSearchProps = (dataIndex) => ({
+        filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+            <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+                <Input
+                    ref={searchInput}
+                    placeholder={`Search ${dataIndex}`}
+                    value={selectedKeys[0]}
+                    onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+                    onPressEnter={() => handleSearchTable(selectedKeys, confirm, dataIndex)}
+                    style={{ marginBottom: 8, display: 'block' }}
+                />
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={() => handleSearchTable(selectedKeys, confirm, dataIndex)}
+                        icon={<SearchOutlined />}
+                        size="small"
+                        style={{ width: 90 }}
+                    >
+                        Search
+                    </Button>
+                    <Button
+                        onClick={() => clearFilters && handleResetSearch(clearFilters)}
+                        size="small"
+                        style={{ width: 90 }}
+                    >
+                        Reset
+                    </Button>
+                    <Button
+                        type="link"
+                        size="small"
+                        onClick={() => { close(); }}
+                    >
+                        close
+                    </Button>
+                </Space>
+            </div>
+        ),
+        filterIcon: (filtered) => (
+            <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />
+        ),
+        onFilter: (value, record) =>
+            record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+        onFilterDropdownOpenChange: (visible) => {
+            if (visible) {
+                setTimeout(() => searchInput.current?.select(), 100);
+            }
+        },
+        render: (text) =>
+            searchedColumn === dataIndex ? (
+                <Highlighter
+                    highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+                    searchWords={[searchText]}
+                    autoEscape
+                    textToHighlight={text ? text.toString() : ''}
+                />
+            ) : (
+                text
+            ),
+    });
+    // columns
     const attendanceColumns = [
         {
             title: 'Student ID',
             dataIndex: 'studentid',
             className: 'student-id',
             sorter: (a, b) => a.id.localeCompare(b.id),
+            ...getColumnSearchProps('id'),
         },
         {
             title: 'Full Name',
             dataIndex: 'fullname',
             className: 'fullname',
+            ...getColumnSearchProps(''),
         },
         {
             title: 'Time In',
@@ -142,6 +223,20 @@ const AttendanceManagementPage = () => {
             title: 'Status',
             dataIndex: 'status',
             className: 'status',
+            // filters: [
+            //     {
+            //         text: 'Present',
+            //         value: 'Present',
+            //     },
+            //     {
+            //         text: 'Half Leave',
+            //         value: 'Half Leave',
+            //     },
+            //     {
+            //         text: 'Asent',
+            //         value: 'Absent',
+            //     },
+            // ],
             render: (_, { status }) => {
                 let color = status === "Present" ? 'green' : (status === "Absent" ? 'red' : 'gold');
                 return (
@@ -152,6 +247,8 @@ const AttendanceManagementPage = () => {
             }
         },
     ];
+
+
     const [attendanceList, setAttendanceList] = useState([]);
     const [standardTime, setStandardTime] = useState({
         timein: '00:00:00',
@@ -160,7 +257,7 @@ const AttendanceManagementPage = () => {
     const getAttendanceInfo = async () => {
         // set attendance table
         const dayOfSpecificDate = getDayOfSpecificDate(attendanceState?.date);
-        const res = await ServerService.getFullAttendance(attendanceState?.class, attendanceState?.date, dayOfSpecificDate);
+        const res = await ServerService.getFullAttendance(attendanceState?.class, attendanceState?.date);
         setAttendanceList(res);
 
         let attendanceArray = res;
@@ -390,7 +487,6 @@ const AddNewForm = styled(Form)`
         padding: 7px 0px 0px 7px;
     }
     
-    .input-select-semester .ant-select-arrow,
     .input-select-students .ant-select-arrow,
     .input-select-class .ant-select-arrow, {
         margin-right: 20px;

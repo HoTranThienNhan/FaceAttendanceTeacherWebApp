@@ -17,10 +17,7 @@ const RollCallPage = () => {
     const [today, setToday] = useState(getDayOfToday() + ' - ' + new Date().toLocaleDateString() + '');
 
     const [attendanceClass, setAttendanceClass] = useState('');
-    const [attendanceStudents, setAttendanceStudents] = useState([{
-        student: '',
-        time: ''
-    }]);
+    const [attendanceStudents, setAttendanceStudents] = useState([]);
 
     // get class by teacher and class id
     const getClassByTeacherAndClassId = async () => {
@@ -63,7 +60,6 @@ const RollCallPage = () => {
     const [isActiveStopButton, setIsActiveStopButton] = useState(false);
 
     const startRecoginition = async () => {
-        // await ServerService.startRecognition();
         setScanURL(`${process.env.REACT_APP_API_URL}/face_rec`);
         setIsActiveStartButton(false);
         setIsActiveStopButton(true);
@@ -129,12 +125,17 @@ const RollCallPage = () => {
         },
     ]);
     // !!!! change arr to attendanceStudents 
-    const [searchedStudents, setSearchedStudents] = useState(arr);
+    const [searchedStudents, setSearchedStudents] = useState(attendanceStudents);
+    useEffect(() => {
+        if (attendanceStudents?.length > 0) {
+            setSearchedStudents(attendanceStudents);
+        }
+    }, [attendanceStudents]);
     const handleOnChangeSearchStudentValue = (e) => {
         setSearchStudentValue(e.target.value);
         const searchedStudentId = e.target.value.toLowerCase();
         let tempSearchedStudents = [];
-        arr?.map((student) => {
+        attendanceStudents?.map((student) => {
             const studentId = student?.student.toLowerCase();
             if (studentId.includes(searchedStudentId)) {
                 tempSearchedStudents.push(student);
@@ -151,7 +152,6 @@ const RollCallPage = () => {
     const navigateToAttendanceClasses = () => {
         navigate('/attendance-classes');
     }
-
 
 
     return (
@@ -236,9 +236,8 @@ const RollCallPage = () => {
                         </Col>
                     </Row>
 
-                    <div style={{ maxHeight: '400px', overflow: 'auto' }}>
+                    <div style={{ maxHeight: '360px', overflow: 'auto' }}>
                         {searchedStudents && searchedStudents?.map((studentAttendance) => {
-                            //{attendanceStudents && attendanceStudents?.map((studentAttendance) => {
                             if (studentAttendance?.student !== '' && studentAttendance?.time !== '') {
                                 return (
                                     <Row justify="space-evenly" style={{ marginBottom: '20px' }} align="middle">
@@ -257,27 +256,21 @@ const RollCallPage = () => {
                             }
                         })}
                     </div>
-
-                    {/* <div style={{ maxHeight: '400px', overflow: 'auto' }}>
-                        {
-                            _.times(20, (i) => {
-                                return (
-                                    <Row justify="space-evenly" style={{ marginBottom: '20px' }} align="middle">
-                                        <Col>
-                                            <Avatar
-                                                shape="square"
-                                                size={32}
-                                                icon={<UserOutlined />}
-                                                style={{ backgroundColor: '#91caff' }}
-                                            />
-                                        </Col>
-                                        <Col style={{ fontSize: '18px' }}>B2005767</Col>
-                                        <Col style={{ fontSize: '18px' }}>Thien Nhan</Col>
-                                    </Row>
-                                );
-                            })
-                        }
-                    </div> */}
+                    {searchedStudents.length > 0 ?
+                        <div style={{ marginTop: '15px' }}>
+                            <Button
+                                style={{ borderRadius: '15px', backgroundColor: '#a0a0e1', marginLeft: '20px' }}
+                                type='primary'
+                                onClick={() => navigateToAttendanceClasses()}
+                            >
+                                BACK TO ATTENDANCE CLASSES
+                            </Button>
+                        </div>
+                        :
+                        <div style={{ marginTop: '15px', color: '#8c8c8c' }}>
+                            There have been no students taking roll call yet.
+                        </div>
+                    }
 
                 </Col>
             </Row >
