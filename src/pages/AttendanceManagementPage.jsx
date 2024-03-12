@@ -181,7 +181,7 @@ const AttendanceManagementPage = () => {
             title: 'Full Name',
             dataIndex: 'fullname',
             className: 'fullname',
-            ...getColumnSearchProps(''),
+            ...getColumnSearchProps('fullname'),
         },
         {
             title: 'Time In',
