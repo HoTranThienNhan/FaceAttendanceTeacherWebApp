@@ -87,3 +87,19 @@ export const getDayNumberOfSpecificDayText = (dayText) => {
     }
     return dayNumber;
 }
+
+/**
+ * getMinusHourBetween2TimeText() function
+ *
+ * @param firstTimeText  The first time text HH:MM:SS
+ * 
+ * @param secondTimeText  The second time text HH:MM:SS
+ * 
+ * @returns A value of (secondTimeText - firstTimeText)
+ */
+export const getMinusHourBetween2TimeText = (firstTimeText, secondTimeText) => {
+    const firstHour = parseInt(firstTimeText.slice(0, 2));
+    const secondHour = parseInt(secondTimeText.slice(0, 2));
+    const minusHour = secondHour - firstHour;
+    return minusHour;
+}

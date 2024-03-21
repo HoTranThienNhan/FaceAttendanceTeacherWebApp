@@ -32,8 +32,16 @@ const HeaderComponent = () => {
       {
          key: '2',
          label: (
-            <a target="_blank" rel="noopener noreferrer" onClick={() => navigateAttendanceManagementPage()}>
-               Attendance Management
+            <a target="_blank" rel="noopener noreferrer" onClick={() => navigateClassAttendanceManagementPage()}>
+               Class Attendance Management
+            </a>
+         ),
+      },
+      {
+         key: '3',
+         label: (
+            <a target="_blank" rel="noopener noreferrer" onClick={() => navigateStudentAttendanceManagementPage()}>
+               Student Attendance Management
             </a>
          ),
       },
@@ -69,8 +77,11 @@ const HeaderComponent = () => {
    const navigateAttendanceClassesPage = () => {
       navigate('/attendance-classes');
    }
-   const navigateAttendanceManagementPage = () => {
-      navigate('/attendance-management');
+   const navigateClassAttendanceManagementPage = () => {
+      navigate('/class-attendance-management');
+   }
+   const navigateStudentAttendanceManagementPage = () => {
+      navigate('/student-attendance-management');
    }
    const navigateMyClassesPage = () => {
       navigate('/myclasses');

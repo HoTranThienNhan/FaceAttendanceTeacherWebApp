@@ -1,11 +1,12 @@
-import { Button, Card, Col, Row, Tag } from 'antd';
+import { Button, Card, Col, Empty, Image, Row, Tag, Tooltip } from 'antd';
 import React, { useState } from 'react';
 import TableComponent from '../components/TableComponent';
 import * as ServerService from '../services/ServerService';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
-import { getDayOfToday } from '../utils';
+import { getDayOfToday, getMinusHourBetween2TimeText } from '../utils';
 import { useNavigate } from 'react-router-dom';
+import OverdueStamp from '../assets/images/overdue-stamp.png';
 
 const AttendanceClassesPage = () => {
 
@@ -36,7 +37,7 @@ const AttendanceClassesPage = () => {
     // get all students by class and set abled/disabled in-out attendance button 
     const getAllStudentsByClass = async (classid) => {
         const res_all_students = await ServerService.getAllStudentsByClass(classid);
-        // set students state
+        // set students stateyth
         let studentList = [];
         res_all_students?.forEach(student => {
             studentList.push(student.studentid)
@@ -47,6 +48,9 @@ const AttendanceClassesPage = () => {
                 students: studentList
             }
         });
+        // set abled/disabled in-out attendance button 
+        // if standard time out of the class is greater than time now()
+
         // set abled/disabled in-out attendance button  
         const res_in_attendance = await ServerService.getInAttendance(classid);
         // if in attendance has not taken yet
@@ -117,6 +121,22 @@ const AttendanceClassesPage = () => {
         },
     ];
 
+    // no data table
+    let locale = {
+        emptyText: (
+            <Empty
+                imageStyle={{ height: 70, marginTop: '20px' }}
+                style={{ marginBottom: '20px' }}
+                description={
+                    <span style={{ color: '#b4b4b4' }}>
+                        No available classes today.
+                    </span>
+                }
+            >
+            </Empty>
+        )
+    };
+
     const navigate = useNavigate();
     const rollCallIn = (classid, attendancetype) => {
         navigate(`/roll-call/${classid}/${attendancetype}`);
@@ -143,6 +163,7 @@ const AttendanceClassesPage = () => {
                         <TableComponent
                             columns={attendanceClassesColumns}
                             data={allClassesByTeacher}
+                            locale={locale}
                             onRow={(record, rowIndex) => {
                                 return {
                                     onClick: (event) => {
@@ -203,23 +224,65 @@ const AttendanceClassesPage = () => {
                                 }
                             </div>
                             <div style={{ marginBottom: '10px' }}>
-                                <Button
-                                    style={{ borderRadius: '15px', backgroundColor: '#a0a0e1', marginRight: '15px' }}
-                                    type='primary'
-                                    onClick={() => rollCallIn(classDetails?.classid, 'in')}
-                                    disabled={classDetails?.classid?.length === 0 || classDetails?.isRollCallIn === true}
+                                <Tooltip
+                                    title={
+                                        getMinusHourBetween2TimeText(classDetails?.standardTimein, new Date(new Date().getTime()).toLocaleTimeString()) > 0 &&
+                                        <span>You can only take in-attendance within an hour from standard time-in.</span>
+                                    }
                                 >
-                                    ROLL CALL - IN
-                                </Button>
-                                <Button
-                                    style={{ borderRadius: '15px', backgroundColor: '#a0a0e1' }}
-                                    type='primary'
-                                    onClick={() => rollCallOut(classDetails?.classid, 'out')}
-                                    disabled={classDetails?.classid?.length === 0 || classDetails?.isRollCallOut === true}
+                                    <Button
+                                        style={{ borderRadius: '15px', backgroundColor: '#a0a0e1', marginRight: '15px' }}
+                                        type='primary'
+                                        onClick={() => rollCallIn(classDetails?.classid, 'in')}
+                                        disabled={
+                                            classDetails?.classid?.length === 0
+                                            || classDetails?.isRollCallIn === true
+                                            // if time now is greater than standard time in by 1 hour then not allow to roll call - in anymore
+                                            || getMinusHourBetween2TimeText(classDetails?.standardTimein, new Date(new Date().getTime()).toLocaleTimeString()) > 0
+                                        }
+                                    >
+                                        ROLL CALL - IN
+                                    </Button>
+                                </Tooltip>
+                                <Tooltip
+                                    title={
+                                        getMinusHourBetween2TimeText(classDetails?.standardTimeout, new Date(new Date().getTime()).toLocaleTimeString()) > 0 &&
+                                        <span>You can only take out-attendance within an hour from standard time-out.</span>
+                                    }
                                 >
-                                    ROLL CALL - OUT
-                                </Button>
+                                    <Button
+                                        style={{ borderRadius: '15px', backgroundColor: '#a0a0e1' }}
+                                        type='primary'
+                                        onClick={() => rollCallOut(classDetails?.classid, 'out')}
+                                        disabled={
+                                            classDetails?.classid?.length === 0
+                                            || classDetails?.isRollCallOut === true
+                                            // if time now is greater than standard time out by 1 hour then not allow to roll call - out anymore
+                                            || getMinusHourBetween2TimeText(classDetails?.standardTimeout, new Date(new Date().getTime()).toLocaleTimeString()) > 0
+                                        }
+                                    >
+                                        ROLL CALL - OUT
+                                    </Button>
+                                </Tooltip>
                             </div>
+                            {
+                                getMinusHourBetween2TimeText(classDetails?.standardTimein, new Date(new Date().getTime()).toLocaleTimeString()) > 0 &&
+                                getMinusHourBetween2TimeText(classDetails?.standardTimeout, new Date(new Date().getTime()).toLocaleTimeString()) > 0 &&
+                                <div style={{ position: "absolute", right: "25px", bottom: '10px' }}>
+                                    <Tooltip title={<span>This class cannot take attendance <br /> due to overtime.</span>}>
+                                        <Image
+                                            src={OverdueStamp}
+                                            style={{
+                                                width: "110px",
+                                                height: "85px",
+                                                borderRadius: "20px",
+                                            }}
+                                            draggable="false"
+                                            preview={false}
+                                        />
+                                    </Tooltip>
+                                </div>
+                            }
                         </Card>
                     </Col>
                 </Row>

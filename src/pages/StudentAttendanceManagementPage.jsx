@@ -1,4 +1,4 @@
-import { Button, Card, Col, DatePicker, Form, Input, Row, Select, Space, Tag } from 'antd';
+import { Button, Card, Col, DatePicker, Empty, Form, Input, Row, Select, Space, Tag } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import FloatingLabelComponent from '../components/FloatingLabelComponent';
@@ -10,14 +10,16 @@ import TableComponent from '../components/TableComponent';
 import { getDayOfSpecificDate, getDayOfToday, getDayNumberOfSpecificDayText } from '../utils';
 import { SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
+import moment from 'moment';
 
-const AttendanceManagementPage = () => {
+const StudentAttendanceManagementPage = () => {
     const user = useSelector((state) => state.user);
 
     const [attendanceState, setAttendanceState] = useState({
         year: '2024',
         semester: 1,
         class: '',
+        student: '',
         date: '',
     });
 
@@ -32,13 +34,12 @@ const AttendanceManagementPage = () => {
             ...attendanceState,
             year: dateString,
             class: '',
-            date: ''
+            student: ''
         });
 
     }
 
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< SEMESTER >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    const [allClasses, setAllClasses] = useState([]);
     // handle on change class semester
     const handleOnChangeSemester = async (semester) => {
         setAttendanceState({
@@ -48,6 +49,7 @@ const AttendanceManagementPage = () => {
     }
 
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< CLASSES >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    const [allClasses, setAllClasses] = useState([]);
     // get all classes by year, semester and teacher id
     const handleGAllClassesByYearSemesterTeacherId = async () => {
         const res = await ServerService.getAllClassesByYearSemesterTeacherId(attendanceState?.year, attendanceState?.semester, user?.id);
@@ -55,7 +57,7 @@ const AttendanceManagementPage = () => {
         setAttendanceState({
             ...attendanceState,
             class: '',
-            date: ''
+            student: ''
         });
         return res;
     }
@@ -69,7 +71,7 @@ const AttendanceManagementPage = () => {
         setAttendanceState({
             ...attendanceState,
             class: classValue,
-            date: ''
+            student: ''
         });
         // set availabled days to disable unavailabled days in date picker
         const res = await ServerService.getClassTimeByClassId(classValue);
@@ -79,6 +81,9 @@ const AttendanceManagementPage = () => {
             availabledDaysArray.push(dayText);
         });
         setAvailabledDays(availabledDaysArray);
+
+        // get all students by class id
+        handleGAllStudentsByClass(classValue);
     }
 
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< DATE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -90,6 +95,33 @@ const AttendanceManagementPage = () => {
         setAttendanceState({
             ...attendanceState,
             date: dateString
+        });
+    }
+
+
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< STUDENTS >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    const [allStudents, setAllStudents] = useState([]);
+    // get all classes by year, semester and teacher id
+    const handleGAllStudentsByClass = async (attendanceClass) => {
+        const res = await ServerService.getAllStudentsByClass(attendanceClass);
+        setAllStudents(res);
+        return res;
+    }
+    const resetStudentAttendanceState = () => {
+        setAllStudents([]);
+        setAttendanceState({
+            ...attendanceState,
+            student: '',
+            date: ''
+        });
+    }
+    useEffect(() => {
+        resetStudentAttendanceState();
+    }, [attendanceState?.year, attendanceState?.semester, attendanceState?.class])
+    const handleOnChangeStudent = (studentValue) => {
+        setAttendanceState({
+            ...attendanceState,
+            student: studentValue
         });
     }
 
@@ -168,6 +200,65 @@ const AttendanceManagementPage = () => {
                 text
             ),
     });
+    const getColumnDateSearchProps = (dataIndex) => ({
+        filterDropdown: ({
+            setSelectedKeys,
+            selectedKeys,
+            confirm,
+            clearFilters
+        }) => (
+            <div style={{ padding: 8 }}>
+                <Space>
+                    <DatePicker
+                        // format={"DD-MM-YY"}
+                        value={selectedKeys[0]}
+                        onChange={(e) => {
+                            setSelectedKeys([e]);
+                        }}
+                        allowClear={false}
+                    />
+                </Space>
+                <Space>
+                    <Button
+                        type="primary"
+                        onClick={() => handleSearchTable(selectedKeys, confirm, dataIndex)}
+                        icon={<SearchOutlined />}
+                        size="small"
+                        style={{ width: 90, marginLeft: '10px' }}
+                    >
+                        Search
+                    </Button>
+                    <Button
+                        onClick={() => handleResetSearch(clearFilters)}
+                        size="small"
+                        style={{ width: 90 }}
+                    >
+                        Reset
+                    </Button>
+                </Space>
+            </div>
+        ),
+        filterIcon: (filtered) => (
+            <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />
+        ),
+        onFilter: (value, record) => {
+            return (
+                moment(record[dataIndex]).format("DD-MM-YYYY") === value.format("DD-MM-YYYY")
+            );
+        },
+        // render: (text) =>
+        //     searchedColumn === dataIndex ? (
+        //         <Highlighter
+        //             highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+        //             searchWords={[searchText]}
+        //             autoEscape
+        //             textToHighlight={text ? text.toString() : ''}
+        //         />
+        //     ) : (
+        //         text.toString()
+        //     ),
+    });
+
     // columns
     const attendanceColumns = [
         {
@@ -175,13 +266,23 @@ const AttendanceManagementPage = () => {
             dataIndex: 'studentid',
             className: 'student-id',
             sorter: (a, b) => a.id.localeCompare(b.id),
-            ...getColumnSearchProps('id'),
         },
         {
             title: 'Full Name',
             dataIndex: 'fullname',
             className: 'fullname',
-            ...getColumnSearchProps('fullname'),
+            sorter: (a, b) => a.fullname.localeCompare(b.fullname),
+        },
+        {
+            title: 'Date',
+            dataIndex: 'date',
+            className: 'date',
+            ...getColumnDateSearchProps('date'),
+        },
+        {
+            title: 'Standard Time In',
+            dataIndex: 'stdtimein',
+            className: 'std-time-in',
         },
         {
             title: 'Time In',
@@ -195,11 +296,16 @@ const AttendanceManagementPage = () => {
             render(text, record) {
                 return {
                     props: {
-                        style: { color: parseInt(text) > 0 ? "red" : "black" }
+                        style: { color: parseInt(text) > 0 ? "red" : parseInt(text) === 0 ? "green" : "black" }
                     },
                     children: <div>{text}</div>
                 };
             }
+        },
+        {
+            title: 'Standard Time Out',
+            dataIndex: 'stdtimeout',
+            className: 'std-time-out',
         },
         {
             title: 'Time Out',
@@ -213,7 +319,7 @@ const AttendanceManagementPage = () => {
             render(text, record) {
                 return {
                     props: {
-                        style: { color: parseInt(text) > 0 ? "red" : "black" }
+                        style: { color: parseInt(text) > 0 ? "red" : parseInt(text) === 0 ? "green" : "black" }
                     },
                     children: <div>{text}</div>
                 };
@@ -247,6 +353,21 @@ const AttendanceManagementPage = () => {
             }
         },
     ];
+    // no data table
+    let locale = {
+        emptyText: (
+            <Empty
+                imageStyle={{ height: 70, marginTop: '20px' }}
+                style={{ marginBottom: '20px' }}
+                description={
+                    <span style={{ color: '#b4b4b4' }}>
+                        No student attendance data.
+                    </span>
+                }
+            >
+            </Empty>
+        )
+    };
 
 
     const [attendanceList, setAttendanceList] = useState([]);
@@ -257,7 +378,7 @@ const AttendanceManagementPage = () => {
     const getAttendanceInfo = async () => {
         // set attendance table
         const dayOfSpecificDate = getDayOfSpecificDate(attendanceState?.date);
-        const res = await ServerService.getFullAttendance(attendanceState?.class, attendanceState?.date);
+        const res = await ServerService.getFullAttendanceByStudentId(attendanceState?.class, attendanceState?.student);
         setAttendanceList(res);
 
         let attendanceArray = res;
@@ -278,13 +399,6 @@ const AttendanceManagementPage = () => {
                 }
             }
         });
-
-        // set standard time in/out
-        const resStandardInOut = await ServerService.getStandardInOutAttendance(attendanceState?.class, dayOfSpecificDate);
-        setStandardTime({
-            timein: resStandardInOut?.timein,
-            timeout: resStandardInOut?.timeout,
-        });
     }
 
 
@@ -292,13 +406,15 @@ const AttendanceManagementPage = () => {
         <Card style={{ margin: '30px 100px', borderRadius: '15px', padding: '0px 30px' }}>
             <Row justify="center">
                 <Col span={24}>
-                    <div style={{ fontSize: '24px', fontWeight: '600', color: '#4d4d7f', marginBottom: '30px' }}>ATTENDANCE MANAGEMENT</div>
+                    <div style={{ fontSize: '24px', fontWeight: '600', color: '#4d4d7f', marginBottom: '30px' }}>
+                        STUDENT ATTENDANCE MANAGEMENT
+                    </div>
                 </Col>
             </Row>
             <Row>
-                <Col span={8}>
-                    <Row justify="center">
-                        <div style={{ fontSize: '18px', fontWeight: '600' }}>Select Class Attendance</div>
+                <Col span={24}>
+                    <Row justify="start">
+                        <div style={{ fontSize: '18px', fontWeight: '600' }}>Select Student</div>
                     </Row>
                     <AddNewForm
                         name="basic"
@@ -307,109 +423,122 @@ const AttendanceManagementPage = () => {
                         initialValues={{ remember: true }}
                         autoComplete="off"
                     >
-                        <Form.Item
-                            label=""
-                            validateStatus={"validating"}
-                            help=""
-                            style={{ marginBottom: '0px', padding: '0px 20px' }}
-                            className='form-item-input'
-                        >
-                            <FloatingLabelComponent
-                                label="Class Year"
-                                value="year"
-                                styleBefore={{ left: '17px', top: '31px' }}
-                                styleAfter={{ left: '17px', top: '23px' }}
-                            >
-                                <DatePicker
-                                    onChange={onChangeClassYear}
-                                    picker="year"
-                                    defaultValue={dayjs('2024', 'YYYY')}
-                                    className='input-year-picker'
-                                    style={{ width: '100%' }}
-                                    allowClear={false}
-                                    disabledDate={disabledYear}
-                                />
-                            </FloatingLabelComponent>
-                        </Form.Item>
-
-                        <Form.Item
-                            label=""
-                            validateStatus={"validating"}
-                            help=""
-                            style={{ marginBottom: '0px', padding: '0px 20px' }}
-                            className='form-item-input'
-                        >
-                            <FloatingLabelComponent
-                                label="Class Semester"
-                                value="semester"
-                                styleBefore={{ left: '19px', top: '31px' }}
-                                styleAfter={{ left: '19px', top: '23px' }}
-                            >
-                                <Select
-                                    className='input-select-semester'
-                                    defaultValue="1"
-                                    onChange={handleOnChangeSemester}
+                        <Row>
+                            <Col span={6}>
+                                <Form.Item
+                                    label=""
+                                    validateStatus={"validating"}
+                                    help=""
+                                    style={{ marginBottom: '0px', padding: '0px 20px' }}
+                                    className='form-item-input'
                                 >
-                                    <Select.Option value="1">1st Semester (January - May)</Select.Option>
-                                    <Select.Option value="2">2nd Semester (August - December)</Select.Option>
-                                </Select>
-                            </FloatingLabelComponent>
-                        </Form.Item>
+                                    <FloatingLabelComponent
+                                        label="Class Year"
+                                        value="year"
+                                        styleBefore={{ left: '17px', top: '31px' }}
+                                        styleAfter={{ left: '17px', top: '23px' }}
+                                    >
+                                        <DatePicker
+                                            onChange={onChangeClassYear}
+                                            picker="year"
+                                            defaultValue={dayjs('2024', 'YYYY')}
+                                            className='input-year-picker'
+                                            style={{ width: '100%' }}
+                                            allowClear={false}
+                                            disabledDate={disabledYear}
+                                        />
+                                    </FloatingLabelComponent>
+                                </Form.Item>
 
-                        <Form.Item
-                            label=""
-                            validateStatus={"validating"}
-                            help=""
-                            style={{ marginBottom: '0px' }}
-                            className='form-item-input'
-                        >
-                            <FloatingLabelComponent
-                                label="Class"
-                                value="class"
-                                styleBefore={{ left: '37px', top: '31px' }}
-                                styleAfter={{ left: '37px', top: '23px' }}
-                            >
-                                <Select
-                                    className='input-select-class'
-                                    defaultValue="Select Class"
-                                    onChange={handleOnChangeClass}
-                                    value={attendanceState?.class?.length > 0 ? attendanceState?.class : "Select Class"}
+                            </Col>
+                            <Col span={6}>
+                                <Form.Item
+                                    label=""
+                                    validateStatus={"validating"}
+                                    help=""
+                                    style={{ marginBottom: '0px', padding: '0px 20px' }}
+                                    className='form-item-input'
                                 >
-                                    {allClasses?.map((classItem, index) => {
-                                        return (
-                                            <Select.Option value={classItem?.id}>
-                                                Class: <b>{classItem?.id}</b> - Course: <b>{classItem?.courseid}</b>
-                                            </Select.Option>
-                                        );
-                                    })}
-                                </Select>
-                            </FloatingLabelComponent>
-                        </Form.Item>
-
-                        <Form.Item
-                            label=""
-                            validateStatus={"validating"}
-                            help=""
-                            style={{ marginBottom: '0px', padding: '0px 20px' }}
-                            className='form-item-input'
-                        >
-                            <FloatingLabelComponent
-                                label="Date"
-                                value="date"
-                                styleBefore={{ left: '19px', top: '31px' }}
-                                styleAfter={{ left: '19px', top: '23px' }}
-                            >
-                                <DatePicker
-                                    onChange={onChangeDate}
-                                    picker="date"
-                                    className='input-date-picker'
-                                    style={{ width: '100%' }}
-                                    allowClear={false}
-                                    disabledDate={ableOnlyThisYear}
-                                    value={attendanceState?.date?.length > 0 && dayjs(attendanceState?.date, 'YYYY-MM-DD')}
-                                />
-                            </FloatingLabelComponent>
-                        </Form.Item>
+                                    <FloatingLabelComponent
+                                        label="Class Semester"
+                                        value="semester"
+                                        styleBefore={{ left: '19px', top: '31px' }}
+                                        styleAfter={{ left: '19px', top: '23px' }}
+                                    >
+                                        <Select
+                                            className='input-select-semester'
+                                            defaultValue="1"
+                                            onChange={handleOnChangeSemester}
+                                        >
+                                            <Select.Option value="1">1st Semester (January - May)</Select.Option>
+                                            <Select.Option value="2">2nd Semester (August - December)</Select.Option>
+                                        </Select>
+                                    </FloatingLabelComponent>
+                                </Form.Item>
+                            </Col>
+                            <Col span={6}>
+                                <Form.Item
+                                    label=""
+                                    validateStatus={"validating"}
+                                    help=""
+                                    style={{ marginBottom: '0px' }}
+                                    className='form-item-input'
+                                >
+                                    <FloatingLabelComponent
+                                        label="Class"
+                                        value="class"
+                                        styleBefore={{ left: '37px', top: '31px' }}
+                                        styleAfter={{ left: '37px', top: '23px' }}
+                                    >
+                                        <Select
+                                            className='input-select-class'
+                                            defaultValue="Select Class"
+                                            onChange={handleOnChangeClass}
+                                            value={attendanceState?.class?.length > 0 ? attendanceState?.class : "Select Class"}
+                                        >
+                                            {allClasses?.map((classItem, index) => {
+                                                return (
+                                                    <Select.Option value={classItem?.id}>
+                                                        Class: <b>{classItem?.id}</b> - Course: <b>{classItem?.courseid}</b>
+                                                    </Select.Option>
+                                                );
+                                            })}
+                                        </Select>
+                                    </FloatingLabelComponent>
+                                </Form.Item>
+                            </Col>
+                            <Col span={6}>
+                                <Form.Item
+                                    label=""
+                                    validateStatus={"validating"}
+                                    help=""
+                                    style={{ marginBottom: '0px' }}
+                                    className='form-item-input'
+                                >
+                                    <FloatingLabelComponent
+                                        label="Student"
+                                        value="student"
+                                        styleBefore={{ left: '37px', top: '31px' }}
+                                        styleAfter={{ left: '37px', top: '23px' }}
+                                    >
+                                        <Select
+                                            className='input-select-class'
+                                            defaultValue="Select Student"
+                                            onChange={handleOnChangeStudent}
+                                            value={attendanceState?.student?.length > 0 ? attendanceState?.student : "Select Student"}
+                                        >
+                                            {allStudents?.map((studentItem, index) => {
+                                                return (
+                                                    <Select.Option value={studentItem?.studentid}>
+                                                        {studentItem?.studentid} - {studentItem?.fullname}
+                                                    </Select.Option>
+                                                );
+                                            })}
+                                        </Select>
+                                    </FloatingLabelComponent>
+                                </Form.Item>
+                            </Col>
+                        </Row>
 
                         <Form.Item>
                             <Button
@@ -420,7 +549,7 @@ const AttendanceManagementPage = () => {
                                     attendanceState?.year?.length === 0
                                     || attendanceState?.semester?.length === 0
                                     || attendanceState?.class?.length === 0
-                                    || attendanceState?.date?.length === 0
+                                    || attendanceState?.student?.length === 0
                                 }
                             >
                                 VIEW ATTENDANCE
@@ -428,23 +557,26 @@ const AttendanceManagementPage = () => {
                         </Form.Item>
                     </AddNewForm>
                 </Col>
-                <TableCol span={15} offset={1}>
-                    <Row justify="start">
-                        <div style={{ fontSize: '18px', marginBottom: '18px', color: '#8b8b8b' }}>
-                            Standard Time: {standardTime?.timein} - {standardTime?.timeout}
-                        </div>
+                <Col span={24}>
+                    <Row justify="start" style={{ margin: '20px 0px' }}>
+                        <div style={{ fontSize: '18px', fontWeight: '600' }}>Student Attendance Table</div>
                     </Row>
-                    <TableComponent
-                        columns={attendanceColumns}
-                        data={attendanceList}
-                    />
-                </TableCol>
+                    <Row>
+                        <TableCol span={24}>
+                            <TableComponent
+                                columns={attendanceColumns}
+                                data={attendanceList}
+                                locale={locale}
+                            />
+                        </TableCol>
+                    </Row>
+                </Col>
             </Row>
         </Card>
     )
 };
 
-export default AttendanceManagementPage;
+export default StudentAttendanceManagementPage;
 
 const AddNewForm = styled(Form)`
     .ant-card-body {

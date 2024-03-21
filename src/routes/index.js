@@ -3,7 +3,8 @@ import SignInPage from "../pages/SignInPage";
 import MyClassesPage from "../pages/MyClassesPage";
 import AttendanceClassesPage from "../pages/AttendanceClassesPage";
 import RollCallPage from "../pages/RollCallPage";
-import AttendanceManagementPage from "../pages/AttendanceManagementPage";
+import ClassAttendanceManagementPage from "../pages/ClassAttendanceManagementPage";
+import StudentAttendanceManagementPage from "../pages/StudentAttendanceManagementPage";
 
 
 export const routes = [
@@ -40,8 +41,16 @@ export const routes = [
         exact: false,
     },
     {
-        path: '/attendance-management',
-        page: AttendanceManagementPage,
+        path: '/class-attendance-management',
+        page: ClassAttendanceManagementPage,
+        isShowHeader: true,
+        isShowFooter: true,
+        isPrivate: false,
+        exact: false,
+    },
+    {
+        path: '/student-attendance-management',
+        page: StudentAttendanceManagementPage,
         isShowHeader: true,
         isShowFooter: true,
         isPrivate: false,

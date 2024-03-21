@@ -55,8 +55,13 @@ export const getStandardInOutAttendance = async (classid, day) => {
     return res.data;
 }
 
-export const getFullAttendance = async (classid, date, day) => {
+export const getFullAttendance = async (classid, date) => {
     const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_full_attendance?classid=${classid}&date=${date}`);
+    return res.data;
+}
+
+export const getFullAttendanceByStudentId = async (classid, studentid) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_full_attendance_by_student_id?classid=${classid}&studentid=${studentid}`);
     return res.data;
 }
 
