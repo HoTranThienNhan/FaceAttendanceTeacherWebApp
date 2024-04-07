@@ -15,8 +15,8 @@ export const stopVideoStream = async () => {
     return res.data;
 }
 
-export const getAllClassesByTeacher = async (teacherid) => {
-    const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_all_classes_by_teacher?teacherid=${teacherid}`);
+export const getAllClassesByTeacherToday = async (teacherid) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_all_classes_by_teacher_today?teacherid=${teacherid}`);
     return res.data;
 }
 

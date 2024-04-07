@@ -101,5 +101,6 @@ export const getMinusHourBetween2TimeText = (firstTimeText, secondTimeText) => {
     const firstHour = parseInt(firstTimeText.slice(0, 2));
     const secondHour = parseInt(secondTimeText.slice(0, 2));
     const minusHour = secondHour - firstHour;
+    console.log(firstHour, secondHour);
     return minusHour;
 }

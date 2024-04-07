@@ -24,15 +24,15 @@ const AttendanceClassesPage = () => {
     const [today, setToday] = useState(getDayOfToday() + ' - ' + new Date().toLocaleDateString() + '');
 
     // get all classes by teacher
-    const getAllClassesByTeacher = async () => {
-        const res = await ServerService.getAllClassesByTeacher(user?.id);
+    const getAllClassesByTeacherToday = async () => {
+        const res = await ServerService.getAllClassesByTeacherToday(user?.id);
         return res;
     }
-    const queryAllClassesByTeacher = useQuery({
-        queryKey: ['classes-by-teacher'],
-        queryFn: getAllClassesByTeacher
+    const queryAllClassesByTeacherToday = useQuery({
+        queryKey: ['classes-by-teacher-today'],
+        queryFn: getAllClassesByTeacherToday
     });
-    const { isLoading: isLoadingAllClassesByTeacher, data: allClassesByTeacher } = queryAllClassesByTeacher;
+    const { isLoading: isLoadingAllClassesByTeacher, data: allClassesByTeacherToday } = queryAllClassesByTeacherToday;
 
     // get all students by class and set abled/disabled in-out attendance button 
     const getAllStudentsByClass = async (classid) => {
@@ -162,7 +162,7 @@ const AttendanceClassesPage = () => {
                         </div>
                         <TableComponent
                             columns={attendanceClassesColumns}
-                            data={allClassesByTeacher}
+                            data={allClassesByTeacherToday}
                             locale={locale}
                             onRow={(record, rowIndex) => {
                                 return {

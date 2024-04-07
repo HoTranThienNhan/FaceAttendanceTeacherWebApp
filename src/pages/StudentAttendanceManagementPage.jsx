@@ -1,4 +1,4 @@
-import { Button, Card, Col, DatePicker, Empty, Form, Input, Row, Select, Space, Tag } from 'antd';
+import { Button, Card, Col, DatePicker, Empty, Form, Input, Row, Select, Space, Statistic, Tag } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import FloatingLabelComponent from '../components/FloatingLabelComponent';
@@ -11,6 +11,8 @@ import { getDayOfSpecificDate, getDayOfToday, getDayNumberOfSpecificDayText } fr
 import { SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import moment from 'moment';
+import CountUp from 'react-countup';
+import { Bar, Column } from '@ant-design/plots';
 
 const StudentAttendanceManagementPage = () => {
     const user = useSelector((state) => state.user);
@@ -382,12 +384,22 @@ const StudentAttendanceManagementPage = () => {
         setAttendanceList(res);
 
         let attendanceArray = res;
+        let totalLateInCount = 0;
+        let totalSoonOutCount = 0;
+        let totalPresentCount = 0;
+        let totalHalfLeaveCount = 0;
+        let totalAbsentCount = 0;
+        let totalLateInMinutes = 0;
+        let totalSoonOutMinutes = 0;
         attendanceArray?.map((item, index) => {
             attendanceArray[index].status = "Present";
             if (item.timein === null && item.late == null) {
                 attendanceArray[index].timein = '--';
                 attendanceArray[index].late = '--';
                 attendanceArray[index].status = "Half Leave";
+            } else {
+                totalLateInCount++;
+                totalLateInMinutes += item.late;
             }
             if (item.timeout === null && item.soon == null) {
                 attendanceArray[index].timeout = '--';
@@ -397,9 +409,61 @@ const StudentAttendanceManagementPage = () => {
                 } else if (item.status === "Half Leave") {
                     attendanceArray[index].status = "Absent";
                 }
+            } else {
+                totalSoonOutCount++;
+                totalSoonOutMinutes += item.soon;
+            }
+            if (attendanceArray[index].status === "Present") {
+                totalPresentCount++;
+            } else if (attendanceArray[index].status === "Half Leave") {
+                totalHalfLeaveCount++;
+            } else {
+                totalAbsentCount++;
             }
         });
+        setTotalStats({
+            ...totalStats,
+            totalLateIn: totalLateInCount,
+            totalSoonOut: totalSoonOutCount,
+            totalPresent: totalPresentCount,
+            totalHalfLeave: totalHalfLeaveCount,
+            totalAbsent: totalAbsentCount,
+            totalLateInMinutes: totalLateInMinutes,
+            totalSoonOutMinutes: totalSoonOutMinutes
+        })
     }
+
+    // Card statistics animated counter
+    const formatter = (value) => <CountUp end={value} separator="," />;
+
+    // Statistics
+    const [totalStats, setTotalStats] = useState({
+        totalLateIn: 0,
+        totalSoonOut: 0,
+        totalPresent: 0,
+        totalHalfLeave: 0,
+        totalAbsent: 0,
+        totalLateInMinutes: 0,
+        totalSoonOutMinutes: 0
+    });
+
+    // Chart
+
+    const config = {
+        data: [
+            { "status": "Present", "times": totalStats?.totalPresent },
+            { "status": "Half Leave", "times": totalStats?.totalHalfLeave },
+            { "status": "Absent", "times": totalStats?.totalAbsent },
+        ],
+        xField: 'times',
+        yField: 'status',
+        sort: {
+            reverse: true,
+        },
+        label: {
+            text: 'times',
+        },
+    };
 
 
     return (
@@ -569,6 +633,78 @@ const StudentAttendanceManagementPage = () => {
                                 locale={locale}
                             />
                         </TableCol>
+                    </Row>
+                </Col>
+                <Col span={24}>
+                    <Row justify="start" style={{ margin: '20px 0px' }}>
+                        <div style={{ fontSize: '18px', fontWeight: '600' }}>Overall</div>
+                    </Row>
+                    <Row>
+                        <Col>
+                            <Card
+                                style={{
+                                    borderRadius: '15px',
+                                    border: '2px solid rgb(160, 160, 225)'
+                                }}
+                            >
+                                <Statistic
+                                    title="Total Late In Times"
+                                    value={totalStats?.totalLateIn}
+                                    suffix={<span>/ {attendanceList?.length ? attendanceList?.length : 0}</span>}
+                                    formatter={formatter}
+                                />
+                            </Card>
+                        </Col>
+                        <Col offset={1}>
+                            <Card
+                                style={{
+                                    borderRadius: '15px',
+                                    border: '2px solid rgb(160, 160, 225)'
+                                }}
+                            >
+                                <Statistic
+                                    title="Total Soon Out Times"
+                                    value={totalStats?.totalSoonOut}
+                                    suffix={<span>/ {attendanceList?.length ? attendanceList?.length : 0}</span>}
+                                    formatter={formatter}
+                                />
+                            </Card>
+                        </Col>
+                        <Col offset={1}>
+                            <Card
+                                style={{
+                                    borderRadius: '15px',
+                                    border: '2px solid rgb(160, 160, 225)'
+                                }}
+                            >
+                                <Statistic
+                                    title="Total Late In Minutes"
+                                    value={totalStats?.totalLateInMinutes}
+                                    suffix={<span> {totalStats?.totalLateInMinutes > 0 ? 'minutes' : 'minute'}</span>}
+                                    formatter={formatter}
+                                />
+                            </Card>
+                        </Col>
+                        <Col offset={1}>
+                            <Card
+                                style={{
+                                    borderRadius: '15px',
+                                    border: '2px solid rgb(160, 160, 225)'
+                                }}
+                            >
+                                <Statistic
+                                    title="Total Soon Out Minutes"
+                                    value={totalStats?.totalSoonOutMinutes}
+                                    suffix={<span> {totalStats?.totalSoonOutMinutes > 0 ? 'minutes' : 'minute'}</span>}
+                                    formatter={formatter}
+                                />
+                            </Card>
+                        </Col>
+                    </Row>
+                    <Row style={{ marginTop: '40px' }}>
+                        <Col span={24}>
+                            <Bar {...config} />
+                        </Col>
                     </Row>
                 </Col>
             </Row>
