@@ -43,7 +43,7 @@ const StudentAttendanceManagementPage = () => {
 
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< SEMESTER >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     // handle on change class semester
-    const handleOnChangeSemester = async (semester) => {
+    const handleOnChangeSemester = (semester) => {
         setAttendanceState({
             ...attendanceState,
             semester: semester,
