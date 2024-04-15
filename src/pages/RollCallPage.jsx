@@ -68,7 +68,6 @@ const RollCallPage = () => {
 
     const stopVideoStream = async () => {
         const data = await ServerService.stopVideoStream();
-        setAttendanceStudents(data);
         setScanURL(ImageNotFound);
         resetImage();
         setIsActiveStopButton(false);
@@ -78,53 +77,6 @@ const RollCallPage = () => {
 
     // search student
     const [searchStudentValue, setSearchStudentValue] = useState('');
-    const [arr, setArr] = useState([
-        {
-            student: 'B2005767',
-            time: '10:00:00'
-        },
-        {
-            student: 'B2005768',
-            time: '10:00:00'
-        },
-        {
-            student: 'B2005769',
-            time: '10:00:00'
-        },
-        {
-            student: 'B2005770',
-            time: '10:00:00'
-        },
-        {
-            student: 'B2005771',
-            time: '10:00:00'
-        },
-        {
-            student: 'B2005772',
-            time: '10:00:00'
-        },
-        {
-            student: 'B2005773',
-            time: '10:00:00'
-        },
-        {
-            student: 'B2005774',
-            time: '10:00:00'
-        },
-        {
-            student: 'B2005775',
-            time: '10:00:00'
-        },
-        {
-            student: 'B2005776',
-            time: '10:00:00'
-        },
-        {
-            student: 'B2005777',
-            time: '10:00:00'
-        },
-    ]);
-    // !!!! change arr to attendanceStudents 
     const [searchedStudents, setSearchedStudents] = useState(attendanceStudents);
     useEffect(() => {
         if (attendanceStudents?.length > 0) {
@@ -143,6 +95,30 @@ const RollCallPage = () => {
         });
         setSearchedStudents(tempSearchedStudents);
     }
+
+
+    // Json Streaming
+    useEffect(() => {
+        if (isActiveStartButton === false) {
+            const jsonStream = async () => {
+                const response = await fetch('http://localhost:7000/json_stream');
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) {
+                        break;
+                    }
+                    const decodedChunk = decoder.decode(value, { stream: true });
+                    const decodedChunkObject = JSON.parse(decodedChunk.replace(/'/g, '"'));
+                    setAttendanceStudents(prevValue => [...prevValue, decodedChunkObject]);
+                }
+            }
+            jsonStream();
+        }
+    }, [isActiveStartButton]);
+
 
     // navigate
     const navigate = useNavigate();
@@ -273,7 +249,7 @@ const RollCallPage = () => {
                     }
 
                 </Col>
-            </Row >
+            </Row>
         </Card >
     )
 };
