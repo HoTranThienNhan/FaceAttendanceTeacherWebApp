@@ -57,7 +57,7 @@ export const routes = [
         exact: false,
     },
     {
-        path: '/myclasses',
+        path: '/my-classes',
         page: MyClassesPage,
         isShowHeader: true,
         isShowFooter: true,

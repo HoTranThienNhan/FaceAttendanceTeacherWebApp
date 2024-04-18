@@ -1,10 +1,11 @@
 import { UserOutlined } from '@ant-design/icons';
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { resetUser } from '../redux/slices/userSlice';
 import { Col, Dropdown, Row, Space } from 'antd';
 import * as MessagePopup from '../components/MessagePopupComponent';
+import styled from 'styled-components';
 
 
 const HeaderComponent = () => {
@@ -12,6 +13,7 @@ const HeaderComponent = () => {
 
    const navigate = useNavigate();
    const dispatch = useDispatch();
+   const location = useLocation();
 
    const handleSignOut = () => {
       dispatch(resetUser());
@@ -84,7 +86,7 @@ const HeaderComponent = () => {
       navigate('/student-attendance-management');
    }
    const navigateMyClassesPage = () => {
-      navigate('/myclasses');
+      navigate('/my-classes');
    }
 
 
@@ -96,8 +98,17 @@ const HeaderComponent = () => {
             </Col>
             {user?.fullname
                ?
-               <Col span={18} style={{ color: '#fff', fontWeight: '700', width: '600px' }}>
+               <CustomHeaderCol span={18} style={{ color: '#fff', fontWeight: '700', width: '600px' }}>
                   <Row justify='end'>
+                     <Col span={3}>
+                        <span
+                           style={{ fontSize: '16px', cursor: 'pointer', fontWeight: '700' }}
+                           className={'home-page-header header-enable-hover' + `${(location.pathname === '/') ? ' checked' : ''}`}
+                           onClick={() => navigateHomePage()}
+                        >
+                           Home Page
+                        </span>
+                     </Col>
                      <Col span={4}>
                         <Dropdown
                            menu={{
@@ -107,7 +118,13 @@ const HeaderComponent = () => {
                               pointAtCenter: true,
                            }}
                         >
-                           <span style={{ fontSize: '16px', cursor: 'pointer', color: '#fff', fontWeight: '700' }}>
+                           <span
+                              style={{ fontSize: '16px', cursor: 'pointer', fontWeight: '700' }}
+                              className={'attendance-page-header header-enable-hover'
+                                 + `${(location.pathname === '/attendance-classes'
+                                    || location.pathname === '/class-attendance-management'
+                                    || location.pathname === '/student-attendance-management') ? ' checked' : ''}`}
+                           >
                               Attendance
                            </span>
                         </Dropdown>
@@ -121,7 +138,10 @@ const HeaderComponent = () => {
                               pointAtCenter: true,
                            }}
                         >
-                           <span style={{ fontSize: '16px', cursor: 'pointer', color: '#fff', fontWeight: '700' }}>
+                           <span 
+                           style={{ fontSize: '16px', cursor: 'pointer', fontWeight: '700' }}
+                           className={'my-classes-header header-enable-hover' + `${(location.pathname === '/my-classes') ? ' checked' : ''}`}
+                           >
                               My Classes
                            </span>
                         </Dropdown>
@@ -139,7 +159,7 @@ const HeaderComponent = () => {
                         </Dropdown>
                      </Col>
                   </Row>
-               </Col>
+               </CustomHeaderCol>
                :
                <Col style={{ color: '#fff', fontWeight: '700' }}>
                   <div style={{ cursor: 'pointer' }} onClick={() => navigateSignInPage()}>Sign In</div>
@@ -151,3 +171,15 @@ const HeaderComponent = () => {
 };
 
 export default HeaderComponent;
+
+const CustomHeaderCol = styled(Col)`
+   .checked {
+      color: #5c32cb;
+      border-bottom: 2px solid;
+   }
+
+   .header-enable-hover:hover {
+      color: #5c32cb !important;
+      border-bottom: 2px solid;
+   }
+`

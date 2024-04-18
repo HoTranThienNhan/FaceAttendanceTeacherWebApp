@@ -398,7 +398,9 @@ const StudentAttendanceManagementPage = () => {
                 attendanceArray[index].late = '--';
                 attendanceArray[index].status = "Half Leave";
             } else {
-                totalLateInCount++;
+                if (item.late !== 0) {
+                    totalLateInCount++;
+                }
                 totalLateInMinutes += item.late;
             }
             if (item.timeout === null && item.soon == null) {
@@ -410,7 +412,9 @@ const StudentAttendanceManagementPage = () => {
                     attendanceArray[index].status = "Absent";
                 }
             } else {
-                totalSoonOutCount++;
+                if (item.soon !== 0) {
+                    totalSoonOutCount++;
+                }
                 totalSoonOutMinutes += item.soon;
             }
             if (attendanceArray[index].status === "Present") {

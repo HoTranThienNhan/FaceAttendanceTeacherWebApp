@@ -85,9 +85,12 @@ const SignInPage = () => {
 
     return (
         <SignInCard>
-            <div style={{ fontSize: '32px', color: '#4d4d7f' }}>SIGN IN</div>
             <Row justify='center'>
                 <Col span={10}>
+                    <div style={{ fontSize: '32px', color: '#4d4d7f', fontWeight: '600', marginBottom: '10px' }}>SIGN IN</div>
+                    <div style={{ marginBottom: '20px', color: '#646464' }}>
+                        Welcome To Face Attendance!
+                    </div>
                     <Form
                         name="basic"
                         labelCol={{ span: 8 }}
@@ -157,6 +160,10 @@ const SignInPage = () => {
                         </Form.Item>
                     </Form>
                 </Col>
+
+                <Col span={10}>
+
+                </Col>
             </Row>
         </SignInCard>
     )
@@ -168,6 +175,7 @@ const SignInCard = styled(Card)`
     border-radius: 25px;
     border: 2px solid #000; 
     margin: 70px 100px;
+    padding: 50px 0px;
 
     .ant-card-body {
         padding: 0px;
@@ -183,7 +191,6 @@ const SignInCard = styled(Card)`
         border-radius: 25px;
         padding: 0px 18px;
         margin-top: 20px; 
-        border: 1px solid #000;
     }
     
     .auth-input-username .ant-input, 
@@ -197,6 +204,11 @@ const SignInCard = styled(Card)`
         border-radius: 25px; 
         margin-bottom: 20px; 
         margin-top: 20px;
+        background-color: #a0a0e1;
+    }
+
+    .ant-btn-primary:not(:disabled):not(.ant-btn-disabled):hover {
+        background-color: #8961ed;
     }
 `
 
