@@ -100,7 +100,11 @@ export const getDayNumberOfSpecificDayText = (dayText) => {
 export const getMinusHourBetween2TimeText = (firstTimeText, secondTimeText) => {
     const firstHour = parseInt(firstTimeText.slice(0, 2));
     const secondHour = parseInt(secondTimeText.slice(0, 2));
-    const minusHour = secondHour - firstHour;
-    console.log(firstHour, secondHour);
+    const firstMinute = parseInt(firstTimeText.slice(3, 5));
+    const secondMinute = parseInt(secondTimeText.slice(3, 5));
+    let minusHour = secondHour - firstHour;
+    if (minusHour === 1 && secondMinute < firstMinute) {
+        minusHour = 0;
+    }
     return minusHour;
 }

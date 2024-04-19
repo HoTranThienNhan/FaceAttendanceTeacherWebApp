@@ -1,7 +1,7 @@
 import { Avatar, Breadcrumb, Button, Card, Col, Form, Image, Input, Popconfirm, Row, Select } from 'antd';
 import React, { useEffect, useState } from 'react';
 import * as ServerService from '../services/ServerService';
-import ImageNotFound from '../assets/images/404-image-not-found.png';
+import FaceAttendanceCameraBackground from '../assets/images/face-attendance-camera-background.png';
 import styled from 'styled-components';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
@@ -51,7 +51,7 @@ const RollCallPage = () => {
 
 
     // video stream
-    const [scanURL, setScanURL] = useState(ImageNotFound);
+    const [scanURL, setScanURL] = useState(FaceAttendanceCameraBackground);
     const [reloadImage, setReloadImage] = useState(1);
     const resetImage = () => {
         setReloadImage(Math.random());
@@ -68,7 +68,7 @@ const RollCallPage = () => {
 
     const stopVideoStream = async () => {
         const data = await ServerService.stopVideoStream();
-        setScanURL(ImageNotFound);
+        setScanURL(FaceAttendanceCameraBackground);
         resetImage();
         setIsActiveStopButton(false);
         MessagePopup.success("Take attendance successfully");
