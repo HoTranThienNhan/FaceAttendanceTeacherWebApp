@@ -70,3 +70,17 @@ export const getClassTimeByClassId = async (classid) => {
     return res.data;
 }
 
+export const getTotalNumberLateSoonStats = async (classid) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_total_number_late_soon_stats?classid=${classid}`);
+    return res.data;
+}
+
+export const getTimesheetByClassId = async (classid) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_timesheet_by_class_id?classid=${classid}`);
+    return res.data;
+}
+
+export const getFullAttendanceByClassId = async (classid) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/get_full_attendance_by_class_id?classid=${classid}`);
+    return res.data;
+}

@@ -102,6 +102,11 @@ const MyClassesPage = () => {
             dataIndex: 'address',
             className: 'student-address',
         },
+        {
+            title: 'Gender',
+            dataIndex: 'gender',
+            className: 'student-gender',
+        },
     ];
     const [classesList, setClassesList] = useState([]);
 
@@ -346,7 +351,6 @@ const MyClassesPage = () => {
                     <TableComponent
                         columns={classesColumns}
                         data={classesList}
-                    // locale={locale}
                     />
                 </Col>
             </Row>

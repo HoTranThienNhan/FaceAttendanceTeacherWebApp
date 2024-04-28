@@ -88,6 +88,9 @@ const HeaderComponent = () => {
    const navigateMyClassesPage = () => {
       navigate('/my-classes');
    }
+   const navigateStatisticPage = () => {
+      navigate('/statistic');
+   }
 
 
    return (
@@ -138,15 +141,24 @@ const HeaderComponent = () => {
                               pointAtCenter: true,
                            }}
                         >
-                           <span 
-                           style={{ fontSize: '16px', cursor: 'pointer', fontWeight: '700' }}
-                           className={'my-classes-header header-enable-hover' + `${(location.pathname === '/my-classes') ? ' checked' : ''}`}
+                           <span
+                              style={{ fontSize: '16px', cursor: 'pointer', fontWeight: '700' }}
+                              className={'my-classes-header header-enable-hover' + `${(location.pathname === '/my-classes') ? ' checked' : ''}`}
                            >
                               My Classes
                            </span>
                         </Dropdown>
                      </Col>
-                     <Col span={6} offset={2}>
+                     <Col span={3}>
+                        <span
+                           style={{ fontSize: '16px', cursor: 'pointer', fontWeight: '700' }}
+                           className={'my-classes-header header-enable-hover' + `${(location.pathname === '/statistic') ? ' checked' : ''}`}
+                           onClick={navigateStatisticPage}
+                        >
+                           Statistic
+                        </span>
+                     </Col>
+                     <Col span={6} offset={1}>
                         <Dropdown
                            menu={{
                               items: navUsernameItems,

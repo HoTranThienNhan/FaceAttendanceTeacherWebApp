@@ -5,6 +5,7 @@ import AttendanceClassesPage from "../pages/AttendanceClassesPage";
 import RollCallPage from "../pages/RollCallPage";
 import ClassAttendanceManagementPage from "../pages/ClassAttendanceManagementPage";
 import StudentAttendanceManagementPage from "../pages/StudentAttendanceManagementPage";
+import StatisticPage from "../pages/StatisticPage";
 
 
 export const routes = [
@@ -59,6 +60,14 @@ export const routes = [
     {
         path: '/my-classes',
         page: MyClassesPage,
+        isShowHeader: true,
+        isShowFooter: true,
+        isPrivate: false,
+        exact: false,
+    },
+    {
+        path: '/statistic',
+        page: StatisticPage,
         isShowHeader: true,
         isShowFooter: true,
         isPrivate: false,

@@ -1,4 +1,4 @@
-import { Button, Card, Col, Form, Input, Row } from 'antd';
+import { Button, Card, Col, Form, Image, Input, Row } from 'antd';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as ServerService from '../services/ServerService';
@@ -11,6 +11,7 @@ import InputPasswordComponent from '../components/InputPasswordComponent';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import FloatingLabelComponent from '../components/FloatingLabelComponent';
 import { styled } from "styled-components";
+import FaceAttendanceSigninBackground from '../assets/images/face-attendance-signin-background.png';
 
 const SignInPage = () => {
     const user = useSelector((state) => state.user);
@@ -86,8 +87,8 @@ const SignInPage = () => {
     return (
         <SignInCard>
             <Row justify='center'>
-                <Col span={10}>
-                    <div style={{ fontSize: '32px', color: '#4d4d7f', fontWeight: '600', marginBottom: '10px' }}>SIGN IN</div>
+                <Col span={9} offset={2}>
+                    <div style={{ fontSize: '32px', color: '#4d4d7f', fontWeight: '600', marginBottom: '10px', marginTop: '50px' }}>SIGN IN</div>
                     <div style={{ marginBottom: '20px', color: '#646464' }}>
                         Welcome To Face Attendance!
                     </div>
@@ -161,8 +162,13 @@ const SignInPage = () => {
                     </Form>
                 </Col>
 
-                <Col span={10}>
-
+                <Col span={11} offset={2}>
+                    <Image
+                        src={FaceAttendanceSigninBackground}
+                        style={{ width: "100%", height: "100%", borderTopRightRadius: "20px", borderBottomRightRadius: '20px' }}
+                        draggable="false"
+                        preview={false}
+                    />
                 </Col>
             </Row>
         </SignInCard>
@@ -172,10 +178,8 @@ const SignInPage = () => {
 export default SignInPage;
 
 const SignInCard = styled(Card)`
-    border-radius: 25px;
-    border: 2px solid #000; 
-    margin: 70px 100px;
-    padding: 50px 0px;
+    border-radius: 20px;
+    margin: 30px 100px;
 
     .ant-card-body {
         padding: 0px;
