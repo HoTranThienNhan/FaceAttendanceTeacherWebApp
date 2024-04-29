@@ -1,4 +1,4 @@
-import { Breadcrumb, Button, Card, Col, DatePicker, Form, Input, Row, Select, Space, Statistic, Tag } from 'antd';
+import { Breadcrumb, Button, Card, Col, DatePicker, Form, Input, Radio, Row, Select, Space, Statistic, Tag } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FloatingLabelComponent from '../components/FloatingLabelComponent';
@@ -10,6 +10,8 @@ import TableComponent from '../components/TableComponent';
 import { SearchOutlined } from '@ant-design/icons';
 import Highlighter from 'react-highlight-words';
 import moment from 'moment';
+import { Pie } from '@ant-design/plots';
+import _ from "lodash";
 
 const StatisticPage = () => {
     const user = useSelector((state) => state.user);
@@ -23,6 +25,7 @@ const StatisticPage = () => {
 
     // table data
     const [attendanceList, setAttendanceList] = useState([]);
+    const [attendanceListForFiltering, setAttendanceListForFiltering] = useState([]);
 
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< YEAR >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     // set up disable year
@@ -61,6 +64,7 @@ const StatisticPage = () => {
 
         const resFullAttendanceByClassId = await ServerService.getFullAttendanceByClassId(classValue);
         setAttendanceList(resFullAttendanceByClassId);
+        setAttendanceListForFiltering(resFullAttendanceByClassId);
 
         let attendanceArray = resFullAttendanceByClassId;
         let totalPresentCount = 0;
@@ -97,6 +101,7 @@ const StatisticPage = () => {
             totalHalfLeave: totalHalfLeaveCount,
             totalAbsent: totalAbsentCount
         });
+        setSelectiveOption('all');
     }
 
     // get all classes by year, semester and teacher id
@@ -114,6 +119,8 @@ const StatisticPage = () => {
             totalHalfLeave: 0,
             totalAbsent: 0
         });
+        setAttendanceList([]);
+        setSelectiveOption('all');
         return res;
     }
     useEffect(() => {
@@ -269,7 +276,7 @@ const StatisticPage = () => {
             title: 'Student ID',
             dataIndex: 'studentid',
             className: 'student-id',
-            sorter: (a, b) => a.id.localeCompare(b.id),
+            sorter: (a, b) => a.studentid.localeCompare(b.studentid),
         },
         {
             title: 'Full Name',
@@ -358,6 +365,195 @@ const StatisticPage = () => {
         },
     ];
 
+
+
+    // selective table
+    _.mixin({
+        multiplemax: function (list, field) {
+            var max = _.max(list, function (item) {
+                return item[field];
+            });
+            return _.filter(list, function (item) {
+                return item[field] === max[field];
+            });
+        }
+    });
+    const [selectiveOption, setSelectiveOption] = useState("all");
+    const [maxSumLate, setMaxSumLate] = useState(0);
+    const [maxSumSoon, setMaxSumSoon] = useState(0);
+    const [maxCountLate, setMaxCountLate] = useState(0);
+    const [maxCountSoon, setMaxCountSoon] = useState(0);
+    const onChangeSelectiveOption = async (e) => {
+        setSelectiveOption(e.target.value);
+        if (e.target.value === "all") {
+            handleOnChangeClass(attendanceState?.class);
+        }
+        if (e.target.value === "total-late-in") {
+            let sumLateSoonAttendanceList = [];
+            attendanceListForFiltering?.map((item, index) => {
+                if (sumLateSoonAttendanceList.find(x => x.studentid === item?.studentid) === undefined) {
+                    sumLateSoonAttendanceList.push({
+                        studentid: item?.studentid,
+                        sumlate: item?.late !== '--' ? item?.late : 0,
+                        sumsoon: item?.soon !== '--' ? item?.soon : 0
+                    });
+                } else {
+                    if (item?.late !== '--') {
+                        sumLateSoonAttendanceList.find(x => x.studentid === item?.studentid).sumlate += item?.late;
+                    }
+                    if (item?.soon !== '--') {
+                        sumLateSoonAttendanceList.find(x => x.studentid === item?.studentid).sumsoon += item?.soon;
+                    }
+                }
+            });
+
+            setMaxSumLate(sumLateSoonAttendanceList.reduce((a, b) => a.sumlate > b.sumlate ? a : b).sumlate);
+            if (sumLateSoonAttendanceList.reduce((a, b) => a.sumlate > b.sumlate ? a : b).sumlate !== 0) {
+                const maxSumLateList = sumLateSoonAttendanceList.filter((function (obj) {
+                    return obj.sumlate === sumLateSoonAttendanceList.reduce((a, b) => a.sumlate > b.sumlate ? a : b).sumlate;
+                }));
+                setAttendanceList(attendanceListForFiltering.filter(item => maxSumLateList.find(x => x.studentid === item?.studentid)));
+            } else {
+                setAttendanceList([]);
+            }
+
+        } else if (e.target.value === "total-soon-out") {
+            let sumLateSoonAttendanceList = [];
+            attendanceListForFiltering?.map((item, index) => {
+                if (sumLateSoonAttendanceList.find(x => x.studentid === item?.studentid) === undefined) {
+                    sumLateSoonAttendanceList.push({
+                        studentid: item?.studentid,
+                        sumlate: item?.late !== '--' ? item?.late : 0,
+                        sumsoon: item?.soon !== '--' ? item?.soon : 0
+                    });
+                } else {
+                    if (item?.late !== '--') {
+                        sumLateSoonAttendanceList.find(x => x.studentid === item?.studentid).sumlate += item?.late;
+                    }
+                    if (item?.soon !== '--') {
+                        sumLateSoonAttendanceList.find(x => x.studentid === item?.studentid).sumsoon += item?.soon;
+                    }
+                }
+            });
+
+            setMaxSumSoon(sumLateSoonAttendanceList.reduce((a, b) => a.sumsoon > b.sumsoon ? a : b).sumsoon);
+            if (sumLateSoonAttendanceList.reduce((a, b) => a.sumsoon > b.sumsoon ? a : b).sumsoon !== 0) {
+                const maxSumSoonList = sumLateSoonAttendanceList.filter((function (obj) {
+                    return obj.sumsoon === sumLateSoonAttendanceList.reduce((a, b) => a.sumsoon > b.sumsoon ? a : b).sumsoon;
+                }));
+                setAttendanceList(attendanceListForFiltering.filter(item => maxSumSoonList.find(x => x.studentid === item?.studentid)));
+            } else {
+                setAttendanceList([]);
+            }
+
+        } else if (e.target.value === "count-late-in") {
+            let countLateSoonAttendanceList = [];
+            let countLate;
+            let countSoon;
+            attendanceListForFiltering?.map((item, index) => {
+                if (countLateSoonAttendanceList.find(x => x.studentid === item?.studentid) === undefined) {
+                    countLate = 0;
+                    countSoon = 0;
+                    if (item?.late !== '--' && item?.late > 0) {
+                        countLate += 1;
+                    }
+                    if (item?.soon !== '--' && item?.soon > 0) {
+                        countSoon += 1;
+                    }
+                    countLateSoonAttendanceList.push({
+                        studentid: item?.studentid,
+                        countlate: item?.late !== '--' && item?.late > 0 ? countLate : 0,
+                        countsoon: item?.soon !== '--' && item?.soon > 0 ? countSoon : 0,
+                    });
+                } else {
+                    if (item?.late !== '--' && item?.late > 0) {
+                        countLate += 1;
+                        countLateSoonAttendanceList.find(x => x.studentid === item?.studentid).countlate = countLate;
+                    }
+                    if (item?.soon !== '--' && item?.soon > 0) {
+                        countSoon += 1;
+                        countLateSoonAttendanceList.find(x => x.studentid === item?.studentid).countsoon = countSoon;
+                    }
+                }
+            });
+
+            setMaxCountLate(countLateSoonAttendanceList.reduce((a, b) => a.countlate > b.countlate ? a : b).countlate);
+            if (countLateSoonAttendanceList.reduce((a, b) => a.countlate > b.countlate ? a : b).countlate !== 0) {
+                const maxCountLateList = countLateSoonAttendanceList.filter((function (obj) {
+                    return obj.countlate === countLateSoonAttendanceList.reduce((a, b) => a.countlate > b.countlate ? a : b).countlate;
+                }));
+                setAttendanceList(attendanceListForFiltering.filter(item => maxCountLateList.find(x => x.studentid === item?.studentid)));
+            } else {
+                setAttendanceList([]);
+            }
+
+        } else if (e.target.value === "count-soon-out") {
+            let countLateSoonAttendanceList = [];
+            let countLate;
+            let countSoon;
+            attendanceListForFiltering?.map((item, index) => {
+                if (countLateSoonAttendanceList.find(x => x.studentid === item?.studentid) === undefined) {
+                    countLate = 0;
+                    countSoon = 0;
+                    countLateSoonAttendanceList.push({
+                        studentid: item?.studentid,
+                        countlate: item?.late !== '--' && item?.late > 0 ? 1 : 0,
+                        countsoon: item?.soon !== '--' && item?.soon > 0 ? 1 : 0,
+                    });
+                } else {
+                    if (item?.late !== '--' && item?.late > 0) {
+                        countLate += 1;
+                        countLateSoonAttendanceList.find(x => x.studentid === item?.studentid).countlate = countLate;
+                    }
+                    if (item?.soon !== '--' && item?.soon > 0) {
+                        countSoon += 1;
+                        countLateSoonAttendanceList.find(x => x.studentid === item?.studentid).countsoon = countSoon;
+                    }
+                }
+            });
+
+            setMaxCountSoon(countLateSoonAttendanceList.reduce((a, b) => a.countsoon > b.countsoon ? a : b).countsoon);
+            if (countLateSoonAttendanceList.reduce((a, b) => a.countsoon > b.countsoon ? a : b).countsoon !== 0) {
+                const maxCountSoonList = countLateSoonAttendanceList.filter((function (obj) {
+                    return obj.countsoon === countLateSoonAttendanceList.reduce((a, b) => a.countsoon > b.countsoon ? a : b).countsoon;
+                }));
+                setAttendanceList(attendanceListForFiltering.filter(item => maxCountSoonList.find(x => x.studentid === item?.studentid)));
+            } else {
+                setAttendanceList([]);
+            }
+        }
+    };
+
+
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< CHART >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    const [isShowChart, setIsShowChart] = useState(false);
+    const onChangeShowChart = (e) => {
+        setIsShowChart(e.target.value);
+    };
+    // Pie chart
+    const pieChartConfig = {
+        data: [
+            { type: 'Present', value: totalStats?.totalPresent ? totalStats?.totalPresent : 0 },
+            { type: 'Half Leave', value: totalStats?.totalHalfLeave ? totalStats?.totalHalfLeave : 0 },
+            { type: 'Absent', value: totalStats?.totalAbsent ? totalStats?.totalAbsent : 0 },
+        ],
+        angleField: 'value',
+        colorField: 'type',
+        label: {
+            text: 'type',
+            style: {
+                fontWeight: 'bold',
+            },
+            position: 'inside',
+        },
+        legend: {
+            color: {
+                title: false,
+                position: 'right',
+                rowPadding: 5,
+            },
+        },
+    };
 
     // navigate
     const navigate = useNavigate();
@@ -491,7 +687,7 @@ const StatisticPage = () => {
                     <Row justify="start" style={{ margin: '30px 0px' }}>
                         <div style={{ fontSize: '18px', fontWeight: '600' }}>Summary Statistic</div>
                     </Row>
-                    <Row>
+                    <Row style={{ margin: '30px 0px 10px 0px' }}>
                         <Col>
                             <Card
                                 style={{
@@ -558,8 +754,31 @@ const StatisticPage = () => {
                             </Card>
                         </Col>
                     </Row>
+                    <Row justify="start" style={{ marginTop: '20px' }}>
+                        <Col span={24} align="start" style={{ fontSize: '18px', fontWeight: '600', marginBottom: '10px' }}>Chart</Col>
+                        <Col span={24} align="start">
+                            <Radio.Group
+                                onChange={onChangeShowChart}
+                                value={isShowChart}
+                            >
+                                <Radio value={true}>Show Chart</Radio>
+                                <Radio value={false}>Hide Chart</Radio>
+                            </Radio.Group>
+                        </Col>
+                    </Row>
+                    {isShowChart &&
+                        <Row justify="center">
+                            <Col span={5} align="center">
+                                <div style={{ fontWeight: '600' }}>Participation Rate Chart</div>
+                                <Pie
+                                    {...pieChartConfig}
+                                    style={{ width: '350px', height: '320px' }}
+                                />
+                            </Col>
+                        </Row>
+                    }
                 </Col>
-                <Col span={24}>
+                {/* <Col span={24}>
                     <Row justify="start" style={{ margin: '30px 0px' }}>
                         <div style={{ fontSize: '18px', fontWeight: '600' }}>Most Committed Violation Students</div>
                     </Row>
@@ -637,10 +856,28 @@ const StatisticPage = () => {
                             </Card>
                         </Col>
                     </Row>
-                </Col>
+                </Col> */}
                 <Col span={24}>
                     <Row justify="start" style={{ margin: '30px 0px' }}>
                         <div style={{ fontSize: '18px', fontWeight: '600' }}>All Students Attendance Table</div>
+                    </Row>
+                    <Row justify="start" style={{ margin: '20px 0px' }}>
+                        <Col span={24} align="start">
+                            <Radio.Group
+                                onChange={onChangeSelectiveOption}
+                                value={selectiveOption}
+                            >
+                                <Radio value="all">All Records</Radio>
+                                {attendanceState?.class?.length > 0 &&
+                                    <>
+                                        <Radio value="total-late-in">Most Total Late Minutes</Radio>
+                                        <Radio value="total-soon-out">Most Total Soon Minutes</Radio>
+                                        <Radio value="count-late-in">Most Late Count</Radio>
+                                        <Radio value="count-soon-out">Most Soon Count</Radio>
+                                    </>
+                                }
+                            </Radio.Group>
+                        </Col>
                     </Row>
                     <Row>
                         <TableCol span={24}>
@@ -650,6 +887,16 @@ const StatisticPage = () => {
                             // locale={locale}
                             />
                         </TableCol>
+                    </Row>
+                    <Row>
+                        <div style={{ fontSize: '18px' }}>
+                            <span style={{ fontWeight: '600' }}>
+                                {attendanceState?.class?.length > 0 && selectiveOption === 'total-late-in' ? `Total Late: ${maxSumLate} minute(s)` : ''}
+                                {attendanceState?.class?.length > 0 && selectiveOption === 'total-soon-out' ? `Total Out: ${maxSumSoon} minute(s)` : ''}
+                                {attendanceState?.class?.length > 0 && selectiveOption === 'count-late-in' ? `Count Late: ${maxCountLate} time(s)` : ''}
+                                {attendanceState?.class?.length > 0 && selectiveOption === 'count-soon-out' ? `Count Out: ${maxCountSoon} time(s)` : ''}
+                            </span>
+                        </div>
                     </Row>
                 </Col>
             </Row>
