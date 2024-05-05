@@ -777,11 +777,11 @@ const StatisticPage = () => {
                     </Row>
                     {isShowChart &&
                         <Row justify="center">
-                            <Col span={5} align="center">
-                                <div style={{ fontWeight: '600' }}>Participation Rate Chart</div>
+                            <Col span={7} align="center" style={{ marginRight: '100px'}}>
+                                <div style={{ fontWeight: '600', marginBottom: '15px' }}>Participation Rate Chart</div>
                                 <Pie
                                     {...pieChartConfig}
-                                    style={{ width: '350px', height: '320px' }}
+                                    style={{ width: '450px', height: '280px' }}
                                 />
                             </Col>
                         </Row>
@@ -900,10 +900,10 @@ const StatisticPage = () => {
                     <Row>
                         <div style={{ fontSize: '18px' }}>
                             <span style={{ fontWeight: '600' }}>
-                                {attendanceState?.class?.length > 0 && selectiveOption === 'total-late-in' ? `Total Late: ${maxSumLate} minute(s)` : ''}
-                                {attendanceState?.class?.length > 0 && selectiveOption === 'total-soon-out' ? `Total Out: ${maxSumSoon} minute(s)` : ''}
-                                {attendanceState?.class?.length > 0 && selectiveOption === 'count-late-in' ? `Count Late: ${maxCountLate} time(s)` : ''}
-                                {attendanceState?.class?.length > 0 && selectiveOption === 'count-soon-out' ? `Count Out: ${maxCountSoon} time(s)` : ''}
+                                {attendanceState?.class?.length > 0 && selectiveOption === 'total-late-in' ? `Total Late: ${maxSumLate} minute${maxSumLate > 1 ? "s" : ""}` : ''}
+                                {attendanceState?.class?.length > 0 && selectiveOption === 'total-soon-out' ? `Total Out: ${maxSumSoon} minute${maxSumSoon > 1 ? "s" : ""}` : ''}
+                                {attendanceState?.class?.length > 0 && selectiveOption === 'count-late-in' ? `Count Late: ${maxCountLate} time${maxCountLate > 1 ? "s" : ""}` : ''}
+                                {attendanceState?.class?.length > 0 && selectiveOption === 'count-soon-out' ? `Count Out: ${maxCountSoon} time${maxCountSoon > 1 ? "s" : ""}` : ''}
                             </span>
                         </div>
                     </Row>
