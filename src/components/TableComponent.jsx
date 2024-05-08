@@ -7,7 +7,8 @@ const TableComponent = (props) => {
         selectionType = '',
         data = [],
         columns = [],
-        isLoading = false
+        isLoading = false,
+        ref = null
     } = props;
 
     const tableRef = useRef(null);
@@ -17,7 +18,7 @@ const TableComponent = (props) => {
             <Table
                 columns={columns}
                 dataSource={data}
-                ref={tableRef}
+                ref={ref}
                 {...props}
             />
         </LoadingComponent>

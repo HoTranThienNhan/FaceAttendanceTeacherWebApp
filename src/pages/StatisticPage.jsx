@@ -12,6 +12,8 @@ import Highlighter from 'react-highlight-words';
 import moment from 'moment';
 import { Pie } from '@ant-design/plots';
 import _ from "lodash";
+import { useDownloadExcel } from 'react-export-table-to-excel';
+import { CSVLink } from "react-csv";
 
 const StatisticPage = () => {
     const user = useSelector((state) => state.user);
@@ -396,7 +398,7 @@ const StatisticPage = () => {
             handleOnChangeClass(attendanceState?.class);
         }
         if (attendanceListForFiltering?.length > 0) {
-            if (e.target.value === "total-late-in") {
+            if (e.target.value === "most-total-late-in") {
                 let sumLateSoonAttendanceList = [];
                 attendanceListForFiltering?.map((item, index) => {
                     if (sumLateSoonAttendanceList.find(x => x.studentid === item?.studentid) === undefined) {
@@ -425,7 +427,7 @@ const StatisticPage = () => {
                     setAttendanceList([]);
                 }
 
-            } else if (e.target.value === "total-soon-out") {
+            } else if (e.target.value === "most-total-soon-out") {
                 let sumLateSoonAttendanceList = [];
                 attendanceListForFiltering?.map((item, index) => {
                     if (sumLateSoonAttendanceList.find(x => x.studentid === item?.studentid) === undefined) {
@@ -454,7 +456,7 @@ const StatisticPage = () => {
                     setAttendanceList([]);
                 }
 
-            } else if (e.target.value === "count-late-in") {
+            } else if (e.target.value === "most-count-late-in") {
                 let countLateSoonAttendanceList = [];
                 let countLate;
                 let countSoon;
@@ -495,7 +497,7 @@ const StatisticPage = () => {
                     setAttendanceList([]);
                 }
 
-            } else if (e.target.value === "count-soon-out") {
+            } else if (e.target.value === "most-count-soon-out") {
                 let countLateSoonAttendanceList = [];
                 let countLate;
                 let countSoon;
@@ -777,7 +779,7 @@ const StatisticPage = () => {
                     </Row>
                     {isShowChart &&
                         <Row justify="center">
-                            <Col span={7} align="center" style={{ marginRight: '100px'}}>
+                            <Col span={7} align="center" style={{ marginRight: '100px' }}>
                                 <div style={{ fontWeight: '600', marginBottom: '15px' }}>Participation Rate Chart</div>
                                 <Pie
                                     {...pieChartConfig}
@@ -787,91 +789,12 @@ const StatisticPage = () => {
                         </Row>
                     }
                 </Col>
-                {/* <Col span={24}>
-                    <Row justify="start" style={{ margin: '30px 0px' }}>
-                        <div style={{ fontSize: '18px', fontWeight: '600' }}>Most Committed Violation Students</div>
-                    </Row>
-                    <Row>
-                        <Col>
-                            <Card
-                                style={{
-                                    borderRadius: '15px',
-                                    border: '2px solid rgb(160, 160, 225)',
-                                    width: '400px'
-                                }}
-                            >
-                                <Row style={{ marginBottom: '15px' }}>
-                                    <span style={{ color: '#00000073' }}>Most Overall Late Time-in</span>
-                                </Row>
-                                <Row>
-                                    <Col span={16} align="start">
-                                        <div style={{ fontSize: '18px' }}>
-                                            B2005767
-                                        </div>
-                                        <div style={{ fontSize: '18px' }}>
-                                            Thien Nhan Thien Nhan
-                                        </div>
-                                    </Col>
-                                    <Row align="middle">
-                                        <Col span={24}>
-                                            <Statistic
-                                                // title={<span>Most Overall Soon Time-out</span>}
-                                                // value={totalStats?.totalLateInMinutes}
-                                                // suffix={<span> {totalStats?.totalLateInMinutes > 0 ? 'minutes' : 'minute'}</span>}
-                                                // formatter={formatter}
-                                                value={20}
-                                                suffix={<span>{'minutes'}</span>}
-                                                contentFontSize={20}
-                                            />
-                                        </Col>
-                                    </Row>
-                                </Row>
-                            </Card>
-                        </Col>
-                        <Col offset={1}>
-                            <Card
-                                style={{
-                                    borderRadius: '15px',
-                                    border: '2px solid rgb(160, 160, 225)',
-                                    width: '400px'
-                                }}
-                            >
-                                <Row style={{ marginBottom: '15px' }}>
-                                    <span style={{ color: '#00000073' }}>Most Overall Soon Time-out</span>
-                                </Row>
-                                <Row>
-                                    <Col span={16} align="start">
-                                        <div style={{ fontSize: '18px' }}>
-                                            B2005767
-                                        </div>
-                                        <div style={{ fontSize: '18px' }}>
-                                            Thien Nhan Thien Nhan
-                                        </div>
-                                    </Col>
-                                    <Row align="middle">
-                                        <Col span={24}>
-                                            <Statistic
-                                                // title={<span>Most Overall Soon Time-out</span>}
-                                                // value={totalStats?.totalLateInMinutes}
-                                                // suffix={<span> {totalStats?.totalLateInMinutes > 0 ? 'minutes' : 'minute'}</span>}
-                                                // formatter={formatter}
-                                                value={20}
-                                                suffix={<span>{'minutes'}</span>}
-                                                contentFontSize={20}
-                                            />
-                                        </Col>
-                                    </Row>
-                                </Row>
-                            </Card>
-                        </Col>
-                    </Row>
-                </Col> */}
                 <Col span={24}>
                     <Row justify="start" style={{ margin: '30px 0px' }}>
                         <div style={{ fontSize: '18px', fontWeight: '600' }}>All Students Attendance Table</div>
                     </Row>
                     <Row justify="start" style={{ margin: '20px 0px' }}>
-                        <Col span={24} align="start">
+                        <Col span={20} align="start">
                             <Radio.Group
                                 onChange={onChangeSelectiveOption}
                                 value={selectiveOption}
@@ -879,13 +802,25 @@ const StatisticPage = () => {
                                 <Radio value="all">All Records</Radio>
                                 {attendanceState?.class?.length > 0 &&
                                     <>
-                                        <Radio value="total-late-in">Most Total Late Minutes</Radio>
-                                        <Radio value="total-soon-out">Most Total Soon Minutes</Radio>
-                                        <Radio value="count-late-in">Most Late Count</Radio>
-                                        <Radio value="count-soon-out">Most Soon Count</Radio>
+                                        <Radio value="most-total-late-in">Most Total Late Minutes</Radio>
+                                        <Radio value="most-total-soon-out">Most Total Soon Minutes</Radio>
+                                        <Radio value="most-count-late-in">Most Late Count</Radio>
+                                        <Radio value="most-count-soon-out">Most Soon Count</Radio>
                                     </>
                                 }
                             </Radio.Group>
+                        </Col>
+                        <Col span={4}>
+                            {attendanceState?.class?.length > 0 &&
+                                <ButtonCustom>
+                                    <CSVLink
+                                        data={attendanceList}
+                                        filename={`${selectiveOption}-` + 'attendance' + `${attendanceState?.class?.length > 0 ? "-" + attendanceState?.class : ""}`}
+                                    >
+                                        Export CSV
+                                    </CSVLink>
+                                </ButtonCustom>
+                            }
                         </Col>
                     </Row>
                     <Row>
@@ -893,17 +828,16 @@ const StatisticPage = () => {
                             <TableComponent
                                 columns={attendanceColumns}
                                 data={attendanceList}
-                            // locale={locale}
                             />
                         </TableCol>
                     </Row>
                     <Row>
                         <div style={{ fontSize: '18px' }}>
                             <span style={{ fontWeight: '600' }}>
-                                {attendanceState?.class?.length > 0 && selectiveOption === 'total-late-in' ? `Total Late: ${maxSumLate} minute${maxSumLate > 1 ? "s" : ""}` : ''}
-                                {attendanceState?.class?.length > 0 && selectiveOption === 'total-soon-out' ? `Total Out: ${maxSumSoon} minute${maxSumSoon > 1 ? "s" : ""}` : ''}
-                                {attendanceState?.class?.length > 0 && selectiveOption === 'count-late-in' ? `Count Late: ${maxCountLate} time${maxCountLate > 1 ? "s" : ""}` : ''}
-                                {attendanceState?.class?.length > 0 && selectiveOption === 'count-soon-out' ? `Count Out: ${maxCountSoon} time${maxCountSoon > 1 ? "s" : ""}` : ''}
+                                {attendanceState?.class?.length > 0 && selectiveOption === 'most-total-late-in' ? `Total Late: ${maxSumLate} minute${maxSumLate > 1 ? "s" : ""}` : ''}
+                                {attendanceState?.class?.length > 0 && selectiveOption === 'most-total-soon-out' ? `Total Out: ${maxSumSoon} minute${maxSumSoon > 1 ? "s" : ""}` : ''}
+                                {attendanceState?.class?.length > 0 && selectiveOption === 'most-count-late-in' ? `Count Late: ${maxCountLate} time${maxCountLate > 1 ? "s" : ""}` : ''}
+                                {attendanceState?.class?.length > 0 && selectiveOption === 'most-count-soon-out' ? `Count Out: ${maxCountSoon} time${maxCountSoon > 1 ? "s" : ""}` : ''}
                             </span>
                         </div>
                     </Row>
@@ -994,6 +928,14 @@ const TableCol = styled(Col)`
     .orange-text {
         color: orange;
     }
+`
+
+const ButtonCustom = styled(Button)`
+    border-radius: 15px;
+    border: 2px solid #a0a0e1;
+    margin-left: 20px;
+    color: #5252c8;
+    padding: 0px 20px;
 `
 
 
