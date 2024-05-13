@@ -392,6 +392,7 @@ const StatisticPage = () => {
     const [maxSumSoon, setMaxSumSoon] = useState(0);
     const [maxCountLate, setMaxCountLate] = useState(0);
     const [maxCountSoon, setMaxCountSoon] = useState(0);
+    const [maxCountAbsent, setMaxCountAbsent] = useState(0);
     const onChangeSelectiveOption = async (e) => {
         setSelectiveOption(e.target.value);
         if (e.target.value === "all") {
@@ -422,7 +423,7 @@ const StatisticPage = () => {
                     const maxSumLateList = sumLateSoonAttendanceList.filter((function (obj) {
                         return obj.sumlate === sumLateSoonAttendanceList.reduce((a, b) => a.sumlate > b.sumlate ? a : b).sumlate;
                     }));
-                    setAttendanceList(attendanceListForFiltering.filter(item => maxSumLateList.find(x => x.studentid === item?.studentid)));
+                    setAttendanceList(attendanceListForFiltering.filter(item => maxSumLateList.find(x => x.studentid === item?.studentid)).filter(x => x.late > 0 && x.late !== '--'));
                 } else {
                     setAttendanceList([]);
                 }
@@ -451,7 +452,7 @@ const StatisticPage = () => {
                     const maxSumSoonList = sumLateSoonAttendanceList.filter((function (obj) {
                         return obj.sumsoon === sumLateSoonAttendanceList.reduce((a, b) => a.sumsoon > b.sumsoon ? a : b).sumsoon;
                     }));
-                    setAttendanceList(attendanceListForFiltering.filter(item => maxSumSoonList.find(x => x.studentid === item?.studentid)));
+                    setAttendanceList(attendanceListForFiltering.filter(item => maxSumSoonList.find(x => x.studentid === item?.studentid)).filter(x => x.soon > 0 && x.soon !== '--'));
                 } else {
                     setAttendanceList([]);
                 }
@@ -492,7 +493,7 @@ const StatisticPage = () => {
                     const maxCountLateList = countLateSoonAttendanceList.filter((function (obj) {
                         return obj.countlate === countLateSoonAttendanceList.reduce((a, b) => a.countlate > b.countlate ? a : b).countlate;
                     }));
-                    setAttendanceList(attendanceListForFiltering.filter(item => maxCountLateList.find(x => x.studentid === item?.studentid)));
+                    setAttendanceList(attendanceListForFiltering.filter(item => maxCountLateList.find(x => x.studentid === item?.studentid)).filter(x => x.late > 0 && x.late !== '--'));
                 } else {
                     setAttendanceList([]);
                 }
@@ -527,10 +528,37 @@ const StatisticPage = () => {
                     const maxCountSoonList = countLateSoonAttendanceList.filter((function (obj) {
                         return obj.countsoon === countLateSoonAttendanceList.reduce((a, b) => a.countsoon > b.countsoon ? a : b).countsoon;
                     }));
-                    setAttendanceList(attendanceListForFiltering.filter(item => maxCountSoonList.find(x => x.studentid === item?.studentid)));
+                    setAttendanceList(attendanceListForFiltering.filter(item => maxCountSoonList.find(x => x.studentid === item?.studentid)).filter(x => x.soon > 0 && x.soon !== '--'));
                 } else {
                     setAttendanceList([]);
-                }
+                } 
+            } else if (e.target.value === "most-count-absent") {
+                let countAbsentAttendanceList = [];
+                let countAbsent;
+                attendanceListForFiltering?.map((item, index) => {
+                    if (countAbsentAttendanceList.find(x => x.studentid === item?.studentid) === undefined) {
+                        countAbsent = 0;
+                        countAbsentAttendanceList.push({
+                            studentid: item?.studentid,
+                            countAbsent: item?.late === '--' && item?.soon === '--' ? 1 : 0,
+                        });
+                    } else {
+                        if (item?.late === '--' && item?.soon === '--') {
+                            countAbsent += 1;
+                            countAbsentAttendanceList.find(x => x.studentid === item?.studentid).countAbsent = countAbsent;
+                        }
+                    }
+                });
+
+                setMaxCountAbsent(countAbsentAttendanceList.reduce((a, b) => a.countAbsent > b.countAbsent ? a : b).countAbsent);
+                if (countAbsentAttendanceList.reduce((a, b) => a.countAbsent > b.countAbsent ? a : b).countAbsent !== 0) {
+                    const maxCountAbsentList = countAbsentAttendanceList.filter((function (obj) {
+                        return obj.countAbsent === countAbsentAttendanceList.reduce((a, b) => a.countAbsent > b.countAbsent ? a : b).countAbsent;
+                    }));
+                    setAttendanceList(attendanceListForFiltering.filter(item => maxCountAbsentList.find(x => x.studentid === item?.studentid)).filter(x => x.late === '--' && x.soon === '--'));
+                } else {
+                    setAttendanceList([]);
+                } 
             }
         }
     };
@@ -806,6 +834,7 @@ const StatisticPage = () => {
                                         <Radio value="most-total-soon-out">Most Total Soon Minutes</Radio>
                                         <Radio value="most-count-late-in">Most Late Count</Radio>
                                         <Radio value="most-count-soon-out">Most Soon Count</Radio>
+                                        <Radio value="most-count-absent">Most Absent Count</Radio>
                                     </>
                                 }
                             </Radio.Group>
@@ -838,6 +867,7 @@ const StatisticPage = () => {
                                 {attendanceState?.class?.length > 0 && selectiveOption === 'most-total-soon-out' ? `Total Out: ${maxSumSoon} minute${maxSumSoon > 1 ? "s" : ""}` : ''}
                                 {attendanceState?.class?.length > 0 && selectiveOption === 'most-count-late-in' ? `Count Late: ${maxCountLate} time${maxCountLate > 1 ? "s" : ""}` : ''}
                                 {attendanceState?.class?.length > 0 && selectiveOption === 'most-count-soon-out' ? `Count Out: ${maxCountSoon} time${maxCountSoon > 1 ? "s" : ""}` : ''}
+                                {attendanceState?.class?.length > 0 && selectiveOption === 'most-count-absent' ? `Count Absent: ${maxCountAbsent} time${maxCountAbsent > 1 ? "s" : ""}` : ''}
                             </span>
                         </div>
                     </Row>
